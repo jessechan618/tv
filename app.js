@@ -15,38 +15,65 @@
     return `https://www.twitch.tv/embed/${encodeURIComponent(TWITCH_ID)}/chat?parent=${encodeURIComponent(parent)}&darkpopout`;
   }
 
-  // Exclusive mount helpers
+  
+  // Exclusive mount helpers (v13 hardened)
   function showTwitch(){
     const mount = el("#twitch-embed");
     const kickFrame = el("#kickFrame");
     if(!mount || !kickFrame) return;
+
+    // Hide Kick completely
     kickFrame.hidden = true;
-    kickFrame.src = "about:blank";
+    kickFrame.style.display = "none";
+    // Reset Kick src to free resources
+    try { kickFrame.src = "about:blank"; } catch {}
+
+    // Show Twitch container
     mount.hidden = false;
+    mount.style.display = "block";
+
     if(twitchPlayer){
-      try{ twitchPlayer.setChannel(TWITCH_ID); }catch{}
+      try{
+        twitchPlayer.setMuted(true);
+        twitchPlayer.play();
+        twitchPlayer.setChannel("yinlove");
+      }catch{}
     }else{
-      twitchPlayer = new Twitch.Player("twitch-embed", {
-        width: "100%",
-        height: "100%",
-        channel: TWITCH_ID,
-        parent: [location.hostname || "localhost"],
-        muted: true,
-        autoplay: true
-      });
+      try{
+        twitchPlayer = new Twitch.Player("twitch-embed", {
+          width: "100%",
+          height: "100%",
+          channel: "yinlove",
+          parent: [location.hostname || "localhost"],
+          muted: true,
+          autoplay: true
+        });
+      }catch(e){
+        // if Twitch embed init fails for any reason, keep container visible but don't crash
+      }
     }
   }
   function showKick(){
     const mount = el("#twitch-embed");
     const kickFrame = el("#kickFrame");
     if(!mount || !kickFrame) return;
+
+    // Pause/hide Twitch
     if(twitchPlayer){
       try{ twitchPlayer.pause(); }catch{}
     }
     mount.hidden = true;
-    kickFrame.src = `https://player.kick.com/${encodeURIComponent(KICK_ID)}?autoplay=true`;
+    mount.style.display = "none";
+
+    // Show Kick iframe strictly inside the pane
+    const src = `https://player.kick.com/${encodeURIComponent("yinlove")}?autoplay=true`;
+    if(kickFrame.src !== src){
+      kickFrame.src = src;
+    }
     kickFrame.hidden = false;
+    kickFrame.style.display = "block";
   }
+
 
   function setProvider(p){
     els('[data-provider="twitch"]').forEach(btn=>btn.setAttribute("aria-pressed", String(p==="twitch")));
