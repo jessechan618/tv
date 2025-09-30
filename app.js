@@ -5,7 +5,7 @@
   const KICK_ID="yinlove";
   let twitchPlayer=null;
   let statusTimer=null;
-  const APP_VERSION="14.1";
+  const APP_VERSION="15.0";
   function setDotStatus(which,status){
     const id=which==="twitch"?"#dot-twitch":"#dot-kick";
     const dot=document.querySelector(id);
@@ -78,7 +78,7 @@
   const TWITCH_STATUS_API="https://tv-ew5jfagu9-jessechan618s-projects.vercel.app/api/twitch-status";
   async function isTwitchLive(){
     try{
-      const r=await fetch(`${TWITCH_STATUS_API}?user_login=${encodeURIComponent(TWITCH_ID)}`,{cache:"no-store",mode:"cors"});
+      const r=await fetch(`${TWITCH_STATUS_API}?user_login=${encodeURIComponent(TWITCH_ID)}`,{cache:"no-store",mode:"cors",credentials:"omit"});
       if(!r.ok)return"unknown";
       const j=await r.json();
       if(j&&j.live===true)return"live";
