@@ -1,4 +1,4 @@
-/* YinLove stream page v11: live indicators (30s), exclusive players, no auto-switch */
+/* YinLove stream page v12: backend status check (no user tokens) */
 (function(){
   const el = (s, root=document)=>root.querySelector(s);
   const els = (s, root=document)=>Array.from(root.querySelectorAll(s));
@@ -7,7 +7,6 @@
   const KICK_ID = "yinlove";
 
   let twitchPlayer = null;
-  let currentProvider = "twitch";
   let statusTimer = null;
 
   // Chat src
@@ -41,28 +40,20 @@
     const mount = el("#twitch-embed");
     const kickFrame = el("#kickFrame");
     if(!mount || !kickFrame) return;
-    // hide twitch
     if(twitchPlayer){
       try{ twitchPlayer.pause(); }catch{}
     }
     mount.hidden = true;
-    // show kick
     kickFrame.src = `https://player.kick.com/${encodeURIComponent(KICK_ID)}?autoplay=true`;
     kickFrame.hidden = false;
   }
 
   function setProvider(p){
-    currentProvider = p;
     els('[data-provider="twitch"]').forEach(btn=>btn.setAttribute("aria-pressed", String(p==="twitch")));
     els('[data-provider="kick"]').forEach(btn=>btn.setAttribute("aria-pressed", String(p==="kick")));
     const label = el(".provider-label");
-    if(p==="twitch"){
-      showTwitch();
-      if(label) label.textContent = "Twitch";
-    }else{
-      showKick();
-      if(label) label.textContent = "Kick";
-    }
+    if(p==="twitch"){ showTwitch(); if(label) label.textContent = "Twitch"; }
+    else { showKick(); if(label) label.textContent = "Kick"; }
     computeStageHeight();
   }
 
@@ -76,17 +67,11 @@
     }catch{ return "unknown"; }
   }
   async function isTwitchLive(){
-    const clientId = localStorage.getItem("tw.client_id");
-    const token = localStorage.getItem("tw.token");
-    if(!clientId || !token) return "unknown";
     try{
-      const r = await fetch(`https://api.twitch.tv/helix/streams?user_login=${encodeURIComponent(TWITCH_ID)}`, {
-        headers: { "Client-ID": clientId, "Authorization": token }
-      });
+      const r = await fetch(`/api/twitch-status?user_login=${encodeURIComponent(TWITCH_ID)}`, { cache: "no-store" });
       if(!r.ok) return "unknown";
       const j = await r.json();
-      const live = Array.isArray(j.data) && j.data.length > 0;
-      return live ? "live" : "offline";
+      return j && j.live === true ? "live" : (j && j.live === false ? "offline" : "unknown");
     }catch{ return "unknown"; }
   }
   async function refreshLiveDots(){
@@ -126,7 +111,7 @@
   function setFullMode(on){
     document.body.classList.toggle("full", !!on);
     document.documentElement.classList.toggle("full-root", !!on);
-    const fullBtn = el("#btnToggleFull");
+    const fullBtn = document.getElementById("btnToggleFull");
     if(fullBtn) fullBtn.setAttribute("aria-pressed", String(!!on));
     updateTopbarHeightVar();
     computeStageHeight();
@@ -147,21 +132,6 @@
     applySavedTheme();
   }
 
-  // ---- Settings (Twitch API) ----
-  function openSettings(){
-    const dlg = el("#dlgSettings");
-    el("#twClientId").value = localStorage.getItem("tw.client_id") || "";
-    el("#twToken").value = localStorage.getItem("tw.token") || "";
-    dlg.showModal();
-  }
-  function saveSettings(){
-    const id = el("#twClientId").value.trim();
-    let token = el("#twToken").value.trim();
-    if(token && !/^Bearer\\s/i.test(token)){ token = "Bearer " + token; }
-    if(id) localStorage.setItem("tw.client_id", id); else localStorage.removeItem("tw.client_id");
-    if(token) localStorage.setItem("tw.token", token); else localStorage.removeItem("tw.token");
-  }
-
   document.addEventListener("DOMContentLoaded", async ()=>{
     // Chat always Twitch
     const chat = el("#chatFrame");
@@ -170,18 +140,11 @@
     // Buttons
     els('.iconbtn[data-provider="twitch"]').forEach(btn=>btn.addEventListener("click", (e)=>{ e.preventDefault(); setProvider("twitch"); }));
     els('.iconbtn[data-provider="kick"]').forEach(btn=>btn.addEventListener("click", (e)=>{ e.preventDefault(); setProvider("kick"); }));
-    const fullBtn = el('#btnToggleFull');
+    const fullBtn = document.getElementById('btnToggleFull');
     if(fullBtn) fullBtn.addEventListener("click", (e)=>{ e.preventDefault(); setFullMode(fullBtn.getAttribute("aria-pressed")!=="true"); });
 
-    const themeBtn = el("#btnTheme");
+    const themeBtn = document.getElementById("btnTheme");
     if(themeBtn) themeBtn.addEventListener("click", (e)=>{ e.preventDefault(); cycleTheme(); });
-
-    const settingsBtn = el("#btnSettings");
-    const dlg = el("#dlgSettings");
-    if(settingsBtn && dlg){
-      settingsBtn.addEventListener("click", (e)=>{ e.preventDefault(); openSettings(); });
-      el("#btnSettingsSave").addEventListener("click", ()=>{ saveSettings(); dlg.close(); refreshLiveDots(); });
-    }
 
     // Initial theme + layout
     applySavedTheme();

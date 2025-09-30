@@ -38,10 +38,6 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a1 1 0 0 1 1 1v2a7 7 0 1 1-7 7H4a1 1 0 0 1-1-1 9 9 0 0 1 9-9z"/></svg>
       </button>
 
-      <button class="iconbtn ghost" id="btnSettings" title="設定 (Twitch API)">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm9 4a7.9 7.9 0 0 0-.1-1l2-1.6-2-3.5-2.4.9a8.2 8.2 0 0 0-1.7-1L14.5 2h-5l-.3 2.7a8.2 8.2 0 0 0-1.7 1l-2.4-.9-2 3.5 2 1.6a7.9 7.9 0 0 0-.1 1c0 .3 0 .7.1 1l-2 1.6 2 3.5 2.4-.9a8.2 8.2 0 0 0 1.7 1L9.5 22h5l.3-2.7a8.2 8.2 0 0 0 1.7-1l2.4.9 2-3.5-2-1.6c.1-.3.1-.6.1-1z"/></svg>
-      </button>
-
       <a class="log" href="https://docs.google.com/spreadsheets/d/1X9NdCPBFGh9b9LSYMVH0bOOP0oO9LirJdSjoUtZbCHM/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer" title="直播記錄">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M6 2h9a3 3 0 0 1 3 3v14.5a.5.5 0 0 1-.8.4L15 18.5l-2.2 1.4a.5.5 0 0 1-.6 0L10 18.5l-2.2 1.4a.5.5 0 0 1-.8-.4V3a1 1 0 0 1 1-1zm1 4h8v2H7V6zm0 4h8v2H7v-2zm0 4h6v2H7v-2z"></path>
@@ -66,11 +62,8 @@
       </div>
       <div class="split">
         <div class="videoPane">
-          <!-- Twitch Embed mounts here when provider=twitch -->
           <div id="twitch-embed" class="twitchMount" hidden></div>
-          <!-- Kick uses iframe -->
           <iframe id="kickFrame" title="Kick Player" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen hidden></iframe>
-
           <p class="notice">
             ⚠️ 提醒：Kicks 台較聲要 <strong>右鍵</strong> → <strong>顯示所有控制</strong>，右邊會有個喇叭較聲。
           </p>
@@ -87,25 +80,6 @@
       <span>© YinLove</span>
     </div>
   </footer>
-
-  <dialog id="dlgSettings" class="card settings">
-    <form method="dialog" id="formSettings">
-      <h3>設定</h3>
-      <p class="muted">（可選）貼上 Twitch API 資訊，以提供 “是否開台” 偵測。</p>
-      <label class="field">
-        <span>Twitch Client-ID</span>
-        <input id="twClientId" placeholder="xxxxxxxxxxxxxxxxxxxx" />
-      </label>
-      <label class="field">
-        <span>Twitch App Access Token</span>
-        <input id="twToken" placeholder="Bearer xxxxxxxxx" />
-      </label>
-      <menu class="dialog-actions">
-        <button value="cancel" class="ghost">取消</button>
-        <button id="btnSettingsSave" value="default" class="primary">儲存</button>
-      </menu>
-    </form>
-  </dialog>
 
   <script src="app.js"></script>
 </body>
