@@ -1,5 +1,5 @@
-# YinLove Stream Page (v5)
+# YinLove Stream Page (v6)
 
-- Discord icon moved next to the brand title.
-- Full Mode now **removes scrollbars** by hiding overflow and using exact viewport height minus the measured top bar.
-- The “正在播放：…” header is hidden in Full Mode for a cleaner view.
+- Wider video area: chat width is **320px** (normal) and **360px** (Full Mode).
+- Page width now uses the full window (no max-width cap).
+- All v5 improvements kept: Discord next to brand, Full Mode without scrollbars, header hidden in Full Mode.
