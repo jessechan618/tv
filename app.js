@@ -1,38 +1,128 @@
+/* YinLove stream page v11: live indicators (30s), exclusive players, no auto-switch */
 (function(){
   const el = (s, root=document)=>root.querySelector(s);
   const els = (s, root=document)=>Array.from(root.querySelectorAll(s));
+
   const TWITCH_ID = "yinlove";
   const KICK_ID = "yinlove";
 
-  function twitchPlayerSrc(){
-    const parent = location.hostname || "localhost";
-    return `https://player.twitch.tv/?channel=${encodeURIComponent(TWITCH_ID)}&parent=${encodeURIComponent(parent)}&muted=true`;
-  }
+  let twitchPlayer = null;
+  let currentProvider = "twitch";
+  let statusTimer = null;
+
+  // Chat src
   function twitchChatSrc(){
     const parent = location.hostname || "localhost";
     return `https://www.twitch.tv/embed/${encodeURIComponent(TWITCH_ID)}/chat?parent=${encodeURIComponent(parent)}&darkpopout`;
   }
-  function kickPlayerSrc(){
-    return `https://player.kick.com/${encodeURIComponent(KICK_ID)}?autoplay=true`;
+
+  // Exclusive mount helpers
+  function showTwitch(){
+    const mount = el("#twitch-embed");
+    const kickFrame = el("#kickFrame");
+    if(!mount || !kickFrame) return;
+    kickFrame.hidden = true;
+    kickFrame.src = "about:blank";
+    mount.hidden = false;
+    if(twitchPlayer){
+      try{ twitchPlayer.setChannel(TWITCH_ID); }catch{}
+    }else{
+      twitchPlayer = new Twitch.Player("twitch-embed", {
+        width: "100%",
+        height: "100%",
+        channel: TWITCH_ID,
+        parent: [location.hostname || "localhost"],
+        muted: true,
+        autoplay: true
+      });
+    }
+  }
+  function showKick(){
+    const mount = el("#twitch-embed");
+    const kickFrame = el("#kickFrame");
+    if(!mount || !kickFrame) return;
+    // hide twitch
+    if(twitchPlayer){
+      try{ twitchPlayer.pause(); }catch{}
+    }
+    mount.hidden = true;
+    // show kick
+    kickFrame.src = `https://player.kick.com/${encodeURIComponent(KICK_ID)}?autoplay=true`;
+    kickFrame.hidden = false;
   }
 
   function setProvider(p){
-    const player = el("#playerFrame");
-    const label = el(".provider-label");
-    
+    currentProvider = p;
     els('[data-provider="twitch"]').forEach(btn=>btn.setAttribute("aria-pressed", String(p==="twitch")));
     els('[data-provider="kick"]').forEach(btn=>btn.setAttribute("aria-pressed", String(p==="kick")));
+    const label = el(".provider-label");
     if(p==="twitch"){
-      player.src = twitchPlayerSrc();
+      showTwitch();
       if(label) label.textContent = "Twitch";
     }else{
-      player.src = kickPlayerSrc();
+      showKick();
       if(label) label.textContent = "Kick";
     }
-    
     computeStageHeight();
   }
 
+  // ---- Live Detection ----
+  async function isKickLive(){
+    try{
+      const r = await fetch(`https://kick.com/api/v2/channels/${encodeURIComponent(KICK_ID)}`);
+      if(!r.ok) return "unknown";
+      const j = await r.json();
+      return j && j.livestream ? "live" : "offline";
+    }catch{ return "unknown"; }
+  }
+  async function isTwitchLive(){
+    const clientId = localStorage.getItem("tw.client_id");
+    const token = localStorage.getItem("tw.token");
+    if(!clientId || !token) return "unknown";
+    try{
+      const r = await fetch(`https://api.twitch.tv/helix/streams?user_login=${encodeURIComponent(TWITCH_ID)}`, {
+        headers: { "Client-ID": clientId, "Authorization": token }
+      });
+      if(!r.ok) return "unknown";
+      const j = await r.json();
+      const live = Array.isArray(j.data) && j.data.length > 0;
+      return live ? "live" : "offline";
+    }catch{ return "unknown"; }
+  }
+  async function refreshLiveDots(){
+    const [kick, twitch] = await Promise.all([isKickLive(), isTwitchLive()]);
+    const dotKick = el("#dot-kick");
+    const dotTwitch = el("#dot-twitch");
+    if(dotKick) dotKick.setAttribute("data-status", kick);
+    if(dotTwitch) dotTwitch.setAttribute("data-status", twitch);
+  }
+
+  // ---- Layout sizing ----
+  function updateTopbarHeightVar(){
+    const tb = el("#topbar");
+    const h = tb ? Math.round(tb.getBoundingClientRect().height) : 56;
+    document.documentElement.style.setProperty("--topbar-h", h + "px");
+  }
+  function computeStageHeight(){
+    const topbar = el("#topbar");
+    const stageHeader = document.querySelector(".stage-header");
+    const footer = document.querySelector(".footer");
+    const layout = document.querySelector(".layout");
+    const vp = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    const tb = topbar ? Math.round(topbar.getBoundingClientRect().height) : 56;
+    const sh = (document.body.classList.contains("full")) ? 0 :
+               (stageHeader ? Math.round(stageHeader.getBoundingClientRect().height) : 40);
+    const ft = (document.body.classList.contains("full")) ? 0 :
+               (footer ? Math.round(footer.getBoundingClientRect().height) : 0);
+    let padV = 0;
+    if (layout) {
+      const cs = getComputedStyle(layout);
+      padV = Math.round(parseFloat(cs.paddingTop || "0") + parseFloat(cs.paddingBottom || "0"));
+    }
+    const buffer = 4;
+    const available = Math.max(400, vp - tb - sh - ft - padV - buffer);
+    document.documentElement.style.setProperty("--stage-h", available + "px");
+  }
   function setFullMode(on){
     document.body.classList.toggle("full", !!on);
     document.documentElement.classList.toggle("full-root", !!on);
@@ -42,72 +132,68 @@
     computeStageHeight();
   }
 
-  function updateTopbarHeightVar(){
-    const tb = el("#topbar");
-    const h = tb ? Math.round(tb.getBoundingClientRect().height) : 56;
-    document.documentElement.style.setProperty("--topbar-h", h + "px");
+  // ---- Theme ----
+  const themes = ["", "theme-violet", "theme-emerald", "theme-rose"];
+  function applySavedTheme(){
+    const saved = localStorage.getItem("theme") || "";
+    document.documentElement.classList.remove("theme-violet","theme-emerald","theme-rose");
+    if(saved) document.documentElement.classList.add(saved);
+  }
+  function cycleTheme(){
+    const saved = localStorage.getItem("theme") || "";
+    const idx = themes.indexOf(saved);
+    const next = themes[(idx+1) % themes.length];
+    localStorage.setItem("theme", next);
+    applySavedTheme();
   }
 
-  function computeStageHeight(){
-    const topbar = el("#topbar");
-    const stageHeader = document.querySelector(".stage-header");
-    const footer = document.querySelector(".footer");
-    const layout = document.querySelector(".layout");
-
-    const vp = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
-    const tb = topbar ? Math.round(topbar.getBoundingClientRect().height) : 56;
-    const sh = stageHeader ? Math.round(stageHeader.getBoundingClientRect().height) : 40;
-    const ft = footer ? Math.round(footer.getBoundingClientRect().height) : 0;
-
-    let padV = 0;
-    if (layout) {
-      const cs = getComputedStyle(layout);
-      padV = Math.round(parseFloat(cs.paddingTop || "0") + parseFloat(cs.paddingBottom || "0"));
-    }
-
-    const buffer = 4;
-    const available = Math.max(400, vp - tb - sh - ft - padV - buffer);
-    document.documentElement.style.setProperty("--stage-h", available + "px");
+  // ---- Settings (Twitch API) ----
+  function openSettings(){
+    const dlg = el("#dlgSettings");
+    el("#twClientId").value = localStorage.getItem("tw.client_id") || "";
+    el("#twToken").value = localStorage.getItem("tw.token") || "";
+    dlg.showModal();
+  }
+  function saveSettings(){
+    const id = el("#twClientId").value.trim();
+    let token = el("#twToken").value.trim();
+    if(token && !/^Bearer\\s/i.test(token)){ token = "Bearer " + token; }
+    if(id) localStorage.setItem("tw.client_id", id); else localStorage.removeItem("tw.client_id");
+    if(token) localStorage.setItem("tw.token", token); else localStorage.removeItem("tw.token");
   }
 
-  document.addEventListener("DOMContentLoaded", ()=>{
-    
+  document.addEventListener("DOMContentLoaded", async ()=>{
+    // Chat always Twitch
     const chat = el("#chatFrame");
     if(chat) chat.src = twitchChatSrc();
 
-    
-    els('.iconbtn[data-provider="twitch"]').forEach(btn=>{
-      btn.addEventListener("click", (e)=>{
-        e.preventDefault();
-        setProvider("twitch");
-      });
-    });
-    els('.iconbtn[data-provider="kick"]').forEach(btn=>{
-      btn.addEventListener("click", (e)=>{
-        e.preventDefault();
-        setProvider("kick");
-      });
-    });
-
-    
+    // Buttons
+    els('.iconbtn[data-provider="twitch"]').forEach(btn=>btn.addEventListener("click", (e)=>{ e.preventDefault(); setProvider("twitch"); }));
+    els('.iconbtn[data-provider="kick"]').forEach(btn=>btn.addEventListener("click", (e)=>{ e.preventDefault(); setProvider("kick"); }));
     const fullBtn = el('#btnToggleFull');
-    if(fullBtn){
-      fullBtn.addEventListener("click", (e)=>{
-        e.preventDefault();
-        const pressed = fullBtn.getAttribute("aria-pressed")==="true";
-        setFullMode(!pressed);
-      });
+    if(fullBtn) fullBtn.addEventListener("click", (e)=>{ e.preventDefault(); setFullMode(fullBtn.getAttribute("aria-pressed")!=="true"); });
+
+    const themeBtn = el("#btnTheme");
+    if(themeBtn) themeBtn.addEventListener("click", (e)=>{ e.preventDefault(); cycleTheme(); });
+
+    const settingsBtn = el("#btnSettings");
+    const dlg = el("#dlgSettings");
+    if(settingsBtn && dlg){
+      settingsBtn.addEventListener("click", (e)=>{ e.preventDefault(); openSettings(); });
+      el("#btnSettingsSave").addEventListener("click", ()=>{ saveSettings(); dlg.close(); refreshLiveDots(); });
     }
 
-    
-    setProvider("twitch");
+    // Initial theme + layout
+    applySavedTheme();
     updateTopbarHeightVar();
     computeStageHeight();
+    window.addEventListener("resize", ()=>{ updateTopbarHeightVar(); computeStageHeight(); });
 
-    
-    window.addEventListener("resize", ()=>{
-      updateTopbarHeightVar();
-      computeStageHeight();
-    });
+    // Default to Twitch visible (exclusive)
+    setProvider("twitch");
+
+    // Refresh dots now and every 30s (no auto-switch)
+    await refreshLiveDots();
+    statusTimer = setInterval(refreshLiveDots, 30 * 1000);
   });
 })();
