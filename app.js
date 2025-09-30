@@ -93,9 +93,10 @@
       return j && j.livestream ? "live" : "offline";
     }catch{ return "unknown"; }
   }
+  const TWITCH_STATUS_API = "https://tv-ebq9g0utx-jessechan618s-projects.vercel.app/api/twitch-status";
   async function isTwitchLive(){
     try{
-      const r = await fetch(`/api/twitch-status?user_login=${encodeURIComponent(TWITCH_ID)}`, { cache: "no-store" });
+      const r = await fetch(`${TWITCH_STATUS_API}?user_login=${encodeURIComponent(TWITCH_ID)}`, { cache: "no-store", mode: "cors" });
       if(!r.ok) return "unknown";
       const j = await r.json();
       return j && j.live === true ? "live" : (j && j.live === false ? "offline" : "unknown");
