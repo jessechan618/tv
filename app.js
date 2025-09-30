@@ -1,4 +1,3 @@
-/* YinLove stream page v6: wider video */
 (function(){
   const el = (s, root=document)=>root.querySelector(s);
   const els = (s, root=document)=>Array.from(root.querySelectorAll(s));
@@ -47,7 +46,7 @@
   document.addEventListener("DOMContentLoaded", ()=>{
     el("#chatFrame").src = twitchChatSrc();
 
-    // Buttons
+    
     els('.iconbtn[data-provider="twitch"]').forEach(btn=>btn.addEventListener("click", ()=>setProvider("twitch")));
     els('.iconbtn[data-provider="kick"]').forEach(btn=>btn.addEventListener("click", ()=>setProvider("kick")));
     el('#btnToggleFull').addEventListener("click", ()=>{
