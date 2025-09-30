@@ -1,3 +1,4 @@
+/* v10: themes + retains previous layout rules */
 :root{
   --bg:#0b0f14;
   --elev:#111723;
@@ -5,21 +6,27 @@
   --text:#e6eefc;
   --muted:#96a3b8;
   --brand:#8ab4ff;
+  --accent:#a7f3d0;
   --danger:#ff7a7a;
   --ring:#3b82f6;
   --radius:14px;
   --topbar-h: 56px;
 }
+/* Alternate themes */
+:root.theme-violet{ --bg:#0b0920; --elev:#141132; --elev-2:#0e0b28; --brand:#9aa6ff; --accent:#c4b5fd }
+:root.theme-emerald{ --bg:#04130e; --elev:#0c1f18; --elev-2:#0a1a14; --brand:#7ee0b5; --accent:#a7f3d0 }
+:root.theme-rose{ --bg:#1a0b0f; --elev:#2a1318; --elev-2:#200f14; --brand:#ffb4c8; --accent:#fecdd3 }
+
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
   margin:0;
   background: radial-gradient(1200px 600px at 10% -10%, #142033 0, transparent 60%), var(--bg);
   color:var(--text);
-  font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Noto Sans;
 }
 
-
+/* Topbar */
 .topbar{
   position:sticky; top:0; z-index:10;
   background:linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,0));
@@ -42,18 +49,14 @@ body{
 .iconbtn svg{width:20px; height:20px; fill:#c9d5f0}
 .iconbtn[aria-pressed="true"]{outline:3px solid rgba(138,180,255,.35)}
 .iconbtn.ghost{background:transparent}
-.log{
-  display:flex; align-items:center; gap:6px; padding:8px 12px; border-radius:999px; text-decoration:none;
-  border:1px solid #1e2a3d; background:#0c1626; color:var(--text); font-size:14px;
-}
+.log{ display:flex; align-items:center; gap:6px; padding:8px 12px; border-radius:999px; text-decoration:none;
+  border:1px solid #1e2a3d; background:#0c1626; color:var(--text); font-size:14px; }
 .log svg{width:18px; height:18px; fill:#c9d5f0}
-.discord{
-  display:inline-grid; place-items:center; width:36px; height:36px; border-radius:999px;
-  background:#202c3f; border:1px solid #2a3a56;
-}
+.discord{ display:inline-grid; place-items:center; width:36px; height:36px; border-radius:999px;
+  background:#202c3f; border:1px solid #2a3a56; }
 .discord svg{width:22px; height:22px; fill:#c9d5f0}
 
-
+/* Layout */
 .layout{max-width:none; margin:0; padding:10px}
 .card{
   background: linear-gradient(180deg, var(--elev), var(--elev-2));
@@ -69,31 +72,29 @@ body{
 
 .videoPane{padding:0; position:relative}
 .chatPane{border-left:1px solid #1a2433; min-height:60vh}
-#playerFrame{display:block; width:100%; height:var(--stage-h, 82vh); border:0}
-.notice{margin:8px 12px; color:var(--muted); font-size:14px}
+.twitchMount, #kickFrame{display:block; width:100%; height:var(--stage-h, 82vh); border:0}
+.notice{position:absolute; left:12px; bottom:8px; margin:0; padding:6px 10px; color:#cfe1ff; background:rgba(17,23,35,.6); border:1px solid #24324b; border-radius:10px; font-size:13px}
 #chatFrame{display:block; width:100%; height:var(--stage-h, 82vh); border:0}
 
 .footer{padding:6px; color:#9fb1cf; font-size:14px}
 .foot-inner{max-width:1400px; margin:0 auto; display:flex; gap:10px; align-items:center; justify-content:space-between}
 
-
+/* Full Mode (no scrollbars) */
+html, body{overflow:hidden}
 body.full, html.full-root{overflow:hidden}
 body.full .layout{max-width:none; padding:0}
 body.full .stage{border-radius:0; border:0}
 body.full .stage-header{display:none}
 body.full .notice{display:none}
-body.full .split{
-  grid-template-columns: 1fr 360px;
-  height: calc(100dvh - var(--topbar-h));
-}
-body.full #playerFrame, body.full #chatFrame{
-  height: calc(100dvh - var(--topbar-h));
-}
+body.full .split{ grid-template-columns: 1fr 360px; height: calc(100dvh - var(--topbar-h)); }
+body.full .twitchMount, body.full #kickFrame, body.full #chatFrame{ height: calc(100dvh - var(--topbar-h)); }
 
-
-body:not(.full) .split{
-  height: var(--stage-h, 82vh);
-}
-
-
-html, body{overflow:hidden}
+/* Settings dialog */
+dialog.card.settings{ padding:16px; max-width:560px; width:calc(100% - 24px); border:0; color:var(--text) }
+dialog::backdrop{ background: rgba(0,0,0,.55); backdrop-filter: blur(2px) }
+.field{ display:grid; gap:6px; margin:10px 0 }
+.field input{ padding:10px 12px; border-radius:10px; border:1px solid #26334a; background:#0d1524; color:var(--text) }
+.dialog-actions{ display:flex; gap:10px; justify-content:flex-end; padding:0; margin-top:8px }
+.primary{ background: linear-gradient(180deg, #1d4ed8, #0f3aa9); border:0; color:white; padding:10px 16px; border-radius:12px; cursor:pointer;
+  box-shadow: inset 0 -1px rgba(255,255,255,.15), 0 6px 20px rgba(0,0,0,.35); }
+.ghost{ background:transparent; border:1px solid #1e2a3d; color:var(--text); padding:8px 14px; border-radius:12px; }
