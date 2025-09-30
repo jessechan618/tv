@@ -34,11 +34,15 @@
   ],
   "headers": [
     {
-      "source": "/api/twitch-status",
+      "source": "/api/(.*)",
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
           "value": "*"
+        },
+        {
+          "key": "Vary",
+          "value": "Origin"
         },
         {
           "key": "Access-Control-Allow-Methods",
@@ -46,7 +50,11 @@
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type,Authorization,Client-ID"
+          "value": "Content-Type,Authorization,Client-ID,X-Requested-With"
+        },
+        {
+          "key": "Access-Control-Max-Age",
+          "value": "86400"
         }
       ]
     }

@@ -75,7 +75,7 @@
       return j&&j.livestream?"live":"offline";
     }catch{return"unknown";}
   }
-  const TWITCH_STATUS_API="https://tv-ew5jfagu9-jessechan618s-projects.vercel.app/api/twitch-status";
+  const TWITCH_STATUS_API = "https://tv-ew5jfagu9-jessechan618s-projects.vercel.app/api/twitch-status";
   async function isTwitchLive(){
     try{
       const r=await fetch(`${TWITCH_STATUS_API}?user_login=${encodeURIComponent(TWITCH_ID)}`,{cache:"no-store",mode:"cors",credentials:"omit"});
