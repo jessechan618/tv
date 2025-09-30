@@ -15,7 +15,7 @@
   const KICK_ID   = "yinlove";
 
   // Use your Vercel function so GH Pages can fetch cross-origin
-  const TWITCH_STATUS_API = "https://tv-ew5jfagu9-jessechan618s-projects.vercel.app/api/twitch-status";
+  const TWITCH_STATUS_API = "https://tv-8lo9ovk82-jessechan618s-projects.vercel.app/api/twitch-status";
 
   let twitchPlayer = null;
   let statusTimer  = null;
