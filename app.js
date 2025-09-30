@@ -1,6 +1,7 @@
-/* YinLove stream page v2: always show Twitch chat, full-mode toggle */
+/* YinLove stream page v5: brand discord, full mode no scroll, hide header in full */
 (function(){
   const el = (s, root=document)=>root.querySelector(s);
+  const els = (s, root=document)=>Array.from(root.querySelectorAll(s));
   const TWITCH_ID = "yinlove";
   const KICK_ID = "yinlove";
 
@@ -19,35 +20,50 @@
   function setProvider(p){
     const player = el("#playerFrame");
     const label = el(".provider-label");
-    el('.chip[data-provider="twitch"]').setAttribute("aria-pressed", String(p==="twitch"));
-    el('.chip[data-provider="kick"]').setAttribute("aria-pressed", String(p==="kick"));
+    els('[data-provider="twitch"]').forEach(btn=>btn.setAttribute("aria-pressed", String(p==="twitch")));
+    els('[data-provider="kick"]').forEach(btn=>btn.setAttribute("aria-pressed", String(p==="kick")));
     if(p==="twitch"){
       player.src = twitchPlayerSrc();
-      label.textContent = "Twitch";
+      if(label) label.textContent = "Twitch";
     }else{
       player.src = kickPlayerSrc();
-      label.textContent = "Kick";
+      if(label) label.textContent = "Kick";
     }
   }
 
   function setFullMode(on){
     document.body.classList.toggle("full", !!on);
+    document.documentElement.classList.toggle("full-root", !!on);
     el("#btnToggleFull").setAttribute("aria-pressed", String(!!on));
+    // measure topbar height to set CSS var
+    updateTopbarHeightVar();
+  }
+
+  function updateTopbarHeightVar(){
+    const tb = el("#topbar");
+    const h = tb ? tb.getBoundingClientRect().height : 56;
+    document.documentElement.style.setProperty("--topbar-h", h + "px");
   }
 
   document.addEventListener("DOMContentLoaded", ()=>{
-    // Load Twitch chat immediately and always
+    // Load Twitch chat immediately
     el("#chatFrame").src = twitchChatSrc();
 
-    // Buttons
-    el('.chip[data-provider="twitch"]').addEventListener("click", ()=>setProvider("twitch"));
-    el('.chip[data-provider="kick"]').addEventListener("click", ()=>setProvider("kick"));
+    // Header icon buttons
+    els('.iconbtn[data-provider="twitch"]').forEach(btn=>btn.addEventListener("click", ()=>setProvider("twitch")));
+    els('.iconbtn[data-provider="kick"]').forEach(btn=>btn.addEventListener("click", ()=>setProvider("kick")));
     el('#btnToggleFull').addEventListener("click", ()=>{
       const pressed = el('#btnToggleFull').getAttribute("aria-pressed")==="true";
       setFullMode(!pressed);
     });
 
-    // Default to Twitch
+    // Stage mini buttons
+    els('.stage .links .iconbtn[data-provider="twitch"]').forEach(btn=>btn.addEventListener("click", ()=>setProvider("twitch")));
+    els('.stage .links .iconbtn[data-provider="kick"]').forEach(btn=>btn.addEventListener("click", ()=>setProvider("kick")));
+
+    // Initial
     setProvider("twitch");
+    updateTopbarHeightVar();
+    window.addEventListener("resize", updateTopbarHeightVar);
   });
 })();

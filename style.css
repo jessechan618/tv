@@ -1,4 +1,4 @@
-/* YinLove dedicated stream page v2: always show Twitch chat, full-mode toggle */
+/* YinLove dedicated stream page v5: brand discord, no scroll full mode, hide header in full */
 :root{
   --bg:#0b0f14;
   --elev:#111723;
@@ -6,10 +6,10 @@
   --text:#e6eefc;
   --muted:#96a3b8;
   --brand:#8ab4ff;
-  --accent:#a7f3d0;
   --danger:#ff7a7a;
   --ring:#3b82f6;
   --radius:14px;
+  --topbar-h: 56px; /* dynamic via JS */
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -31,21 +31,27 @@ body{
 .brand{display:flex; gap:10px; align-items:center}
 .logo-img{width:32px; height:32px; border-radius:8px; object-fit:cover; box-shadow:0 2px 6px rgba(0,0,0,.3)}
 .brand .title{display:flex; flex-direction:column; line-height:1.1}
-.brand .title strong{font-size:18px}
+.brand .title strong{font-size:16px}
 .brand .title .sub{font-size:12px; color:var(--muted)}
+.brand-discord{margin-left:8px}
 
 .nav{display:flex; align-items:center; gap:10px}
-.chip{
-  border-radius:999px; padding:8px 14px;
-  border:1px solid #1e2a3d; background:#0c1626; color:var(--text);
-  cursor:pointer; transition:transform .05s ease-in;
+.iconbtn{
+  display:inline-grid; place-items:center; width:36px; height:36px; border-radius:999px;
+  border:1px solid #1e2a3d; background:#0c1626; color:var(--text); cursor:pointer;
 }
-.chip.ghost{background:transparent}
-.chip[aria-pressed="true"]{outline:3px solid rgba(138,180,255,.35)}
-.chip:active{transform:scale(.98)}
+.iconbtn.tiny{width:30px; height:30px}
+.iconbtn svg{width:20px; height:20px; fill:#c9d5f0}
+.iconbtn[aria-pressed="true"]{outline:3px solid rgba(138,180,255,.35)}
+.iconbtn.ghost{background:transparent}
+.log{
+  display:flex; align-items:center; gap:6px; padding:8px 12px; border-radius:999px; text-decoration:none;
+  border:1px solid #1e2a3d; background:#0c1626; color:var(--text); font-size:14px;
+}
+.log svg{width:18px; height:18px; fill:#c9d5f0}
 .discord{
   display:inline-grid; place-items:center; width:36px; height:36px; border-radius:999px;
-  background:#202c3f; border:1px solid #2a3a56; margin-left:4px;
+  background:#202c3f; border:1px solid #2a3a56;
 }
 .discord svg{width:22px; height:22px; fill:#c9d5f0}
 
@@ -59,11 +65,7 @@ body{
   overflow:hidden;
 }
 .stage-header{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:10px 12px; border-bottom:1px solid #1a2433}
-.stage-header h2{margin:0; font-size:18px}
-.stage-header .links{font-size:14px}
-.stage-header .links a{color:var(--brand); text-decoration:none}
-.stage-header .links a:hover{text-decoration:underline}
-.sep{opacity:.6; margin:0 6px}
+.stage-header h2{margin:0; font-size:16px}
 
 .split{display:grid; grid-template-columns: 1fr 380px; gap:0}
 @media (max-width: 980px){ .split{ grid-template-columns: 1fr } }
@@ -77,10 +79,16 @@ body{
 .footer{padding:12px; color:#9fb1cf}
 .foot-inner{max-width:1400px; margin:0 auto; display:flex; gap:12px; align-items:center; justify-content:space-between}
 
-/* Full Mode: use entire viewport, hide header/footer paddings */
-body.full .topbar{display:none}
-body.full .footer{display:none}
+/* Full Mode (no scrollbars): lock viewport and hide stage header & notice) */
+body.full, html.full-root{overflow:hidden}
 body.full .layout{max-width:none; padding:0}
 body.full .stage{border-radius:0; border:0}
-body.full .split{grid-template-columns: 1fr 420px; height:100vh}
-body.full #playerFrame, body.full #chatFrame{height:100vh}
+body.full .stage-header{display:none}
+body.full .notice{display:none}
+body.full .split{
+  grid-template-columns: 1fr 420px;
+  height: calc(100dvh - var(--topbar-h));
+}
+body.full #playerFrame, body.full #chatFrame{
+  height: calc(100dvh - var(--topbar-h));
+}
