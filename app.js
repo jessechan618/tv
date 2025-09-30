@@ -8,6 +8,26 @@
 
   let twitchPlayer = null;
   let statusTimer = null;
+  const APP_VERSION = "13.3";
+
+  function setDotStatus(which, status){
+    // which: "twitch" or "kick"
+    // status: "live" | "offline" | "unknown"
+    const id = which === "twitch" ? "#dot-twitch" : "#dot-kick";
+    const dot = document.querySelector(id);
+    if(!dot) return;
+    // Preferred path: data-status attribute (CSS maps to colors)
+    dot.setAttribute("data-status", status);
+    // Extra safety: inline style override if CSS misses (rare CDN caching)
+    if(status === "live"){
+      dot.style.background = "#10b981"; // green
+    }else if(status === "offline"){
+      dot.style.background = "#ef4444"; // red
+    }else{
+      dot.style.background = "#6b7280"; // gray
+    }
+  }
+
 
   // Chat src
   function twitchChatSrc(){
@@ -93,21 +113,35 @@
       return j && j.livestream ? "live" : "offline";
     }catch{ return "unknown"; }
   }
-  const TWITCH_STATUS_API = "https://tv-ew5jfagu9-jessechan618s-projects.vercel.app/api/twitch-status?user_login=yinlove";
+  const TWITCH_STATUS_API = "https://tv-ew5jfagu9-jessechan618s-projects.vercel.app/api/twitch-status";
   async function isTwitchLive(){
     try{
       const r = await fetch(`${TWITCH_STATUS_API}?user_login=${encodeURIComponent(TWITCH_ID)}`, { cache: "no-store", mode: "cors" });
+      if(!r.ok) return "unknown";
+      const j = await r.json();
+      if (j && j.live === true) return "live";
+      if (j && j.live === false) return "offline";
+      return "unknown";
+    }catch{
+      return "unknown";
+    }
+  }?user_login=${encodeURIComponent(TWITCH_ID)}`, { cache: "no-store", mode: "cors" });
       if(!r.ok) return "unknown";
       const j = await r.json();
       return j && j.live === true ? "live" : (j && j.live === false ? "offline" : "unknown");
     }catch{ return "unknown"; }
   }
   async function refreshLiveDots(){
-    const [kick, twitch] = await Promise.all([isKickLive(), isTwitchLive()]);
-    const dotKick = el("#dot-kick");
-    const dotTwitch = el("#dot-twitch");
-    if(dotKick) dotKick.setAttribute("data-status", kick);
-    if(dotTwitch) dotTwitch.setAttribute("data-status", twitch);
+    try{
+      const [kick, twitch] = await Promise.all([isKickLive(), isTwitchLive()]);
+      console.log("[YinLove v"+APP_VERSION+"] status:", {kick, twitch});
+      setDotStatus("kick", (kick === "live" ? "live" : (kick === "offline" ? "offline" : "unknown")));
+      setDotStatus("twitch", (twitch === "live" ? "live" : (twitch === "offline" ? "offline" : "unknown")));
+    }catch(e){
+      console.warn("[YinLove] status check failed:", e);
+      setDotStatus("kick", "unknown");
+      setDotStatus("twitch", "unknown");
+    }
   }
 
   // ---- Layout sizing ----
