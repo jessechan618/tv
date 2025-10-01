@@ -188,15 +188,34 @@ function setTotalCount(total){
 }
 
 
+let _fvInFlight = false; let _kickZeroStrikes = 0; let _kickLast = {v:0, t:0};
 async function fetchViewers() {
+  if (_fvInFlight) return; _fvInFlight = true;
   try {
     const twitchRes = await fetch("/api/twitch-status?user_login=yinlove");
     const twitchData = await twitchRes.json();
     const kickRes = await fetch("/api/kick-status?channel=yinlove");
     const kickData = await kickRes.json();
 
-    const twitchViewers = (twitchData && typeof twitchData.viewers === "number") ? twitchData.viewers : 0;
-    const kickViewers = (kickData && typeof kickData.viewers === "number") ? kickData.viewers : 0;
+    let twitchViewers = (twitchData && typeof twitchData.viewers === "number") ? twitchData.viewers : 0;
+    let kickViewers = (kickData && typeof kickData.viewers === "number") ? kickData.viewers : 0;
+    
+    // Smooth Kick viewer count: avoid brief 0 blips
+    try {
+      const now = Date.now();
+      if (kickViewers > 0) {
+        _kickZeroStrikes = 0;
+        _kickLast = { v: kickViewers, t: now };
+      } else {
+        _kickZeroStrikes++;
+        const recent = (now - _kickLast.t) < 20000; // 20s window
+        if (_kickZeroStrikes < 2 && recent && _kickLast.v > 0) {
+          // keep last non-zero instead of flashing to 0
+          kickViewers = _kickLast.v;
+        }
+      }
+    } catch(e) { /* no-op */ }
+
     const totalViewers = twitchViewers + kickViewers;
 
     var tc = document.getElementById("totalCount");
