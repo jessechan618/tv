@@ -178,33 +178,3 @@ body.full .twitchMount, body.full #kickFrame, body.full #chatFrame{ height: calc
 .chip .dot{ width:8px; height:8px; border-radius:999px; background: currentColor; display:inline-block; }
 .chip.offline{ background: var(--elev-2); color: var(--muted); }
 .chip.live{ background: #16a34a; color: #0a1f12; border-color: rgba(0,0,0,.1); }
-
-
-/* --- Kick reminder toast (non-blocking) --- */
-.toast{
-  position: fixed;
-  right: 16px; bottom: 16px; left: auto;
-  max-width: min(92vw, 420px);
-  background: var(--elev);
-  color: var(--text);
-  border: 1px solid #24324b;
-  border-radius: 12px;
-  padding: 10px 12px;
-  display: flex; gap: 10px; align-items: flex-start;
-  box-shadow: 0 10px 30px rgba(0,0,0,.35);
-  z-index: 1000;
-}
-.toast.hidden{ display:none; }
-.toast .toast-icon{ line-height: 1.2; }
-.toast .toast-close{
-  margin-left: auto;
-  background: transparent; border: 0;
-  color: inherit; font-size: 20px; line-height: 1;
-  cursor: pointer;
-}
-@media (max-width: 600px){
-  .toast{ left: 12px; right: 12px; bottom: 12px; }
-}
-
-/* Hide the old absolute-positioned notice to avoid blocking the player */
-.notice{ display: none !important; }
