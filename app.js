@@ -20,23 +20,7 @@
     return `https://www.twitch.tv/embed/${encodeURIComponent(TWITCH_ID)}/chat?parent=${encodeURIComponent(parent)}&darkpopout`;
   }
   function showTwitch(){
-    
-  try {
-    if (typeof twitchPlayer !== 'undefined' && twitchPlayer && twitchPlayer.play) {
-      try { twitchPlayer.setMuted(true); } catch(e){}
-      try { twitchPlayer.play(); } catch(e){}
-    }
-    var tIframe = document.querySelector('#twitch-embed iframe');
-    if (tIframe) {
-      try {
-        var u = new URL(tIframe.src, location.href);
-        u.searchParams.set('autoplay', 'true');
-        u.searchParams.set('muted', 'true');
-        tIframe.src = u.toString();
-      } catch(e){}
-    }
-  } catch(e){} 
-const mount=el("#twitch-embed");
+    const mount=el("#twitch-embed");
     const kickFrame=el("#kickFrame");
     if(!mount||!kickFrame)return;
     kickFrame.hidden=true;
@@ -60,15 +44,7 @@ const mount=el("#twitch-embed");
           muted:true,
           autoplay:true
         });
-      
-    try{
-      if (twitchPlayer && twitchPlayer.addEventListener){
-        twitchPlayer.addEventListener(Twitch.Player.READY, function(){
-          try{ twitchPlayer.setMuted(true); twitchPlayer.play(); }catch(e){}
-        });
-      }
-    }catch(e){} 
-}catch(e){}
+      }catch(e){}
     }
   }
   function showKick(){
@@ -213,8 +189,7 @@ function setTotalCount(total){
 
 
 let _fvInFlight = false; let _kickZeroStrikes = 0; let _kickLast = {v:0, t:0};
-async function fetchViewers(){
-  if(_fvInFlight) return; _fvInFlight=true;
+async function fetchViewers() {
   if (_fvInFlight) return; _fvInFlight = true;
   try {
     const twitchRes = await fetch("/api/twitch-status?user_login=yinlove");
@@ -241,20 +216,6 @@ async function fetchViewers(){
       }
     } catch(e) { /* no-op */ }
 
-    // Smooth Kick: keep last non-zero up to 20s; need 2 zeros to drop
-    (function(){ try{
-      const now = Date.now();
-      if (kickViewers > 0){
-        _kickZeroStrikes = 0;
-        _lastKick = { v: kickViewers, t: now };
-      } else {
-        _kickZeroStrikes++;
-        const recent = (now - _lastKick.t) < 20000;
-        if (_kickZeroStrikes < 2 && recent && _lastKick.v > 0){
-          kickViewers = _lastKick.v;
-        }
-      }
-    }catch(e){} })();
     const totalViewers = twitchViewers + kickViewers;
 
     var tc = document.getElementById("totalCount");
@@ -278,15 +239,10 @@ if (tc) tc.textContent = String(totalViewers);
     var kTxt = document.getElementById("kickViewers"); if (kTxt) kTxt.innerText = `Kick: ${kickViewers}`;
     var totTxt = document.getElementById("totalViewers");
     if (totTxt && !totTxt.querySelector('svg')) { totTxt.innerText = `Total Viewers: ${totalViewers}`; }
-  } catch (err) { console.error(err); } finally { _fvInFlight=false; } }
+  } catch (err) { console.error("Error fetching viewers", err); }
+}
 
 (function(){
   function onReady(fn){ if (document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
   onReady(function(){ fetchViewers(); setInterval(fetchViewers, 30000); });
 })();
-
-
-// Show Kick reminder once on first load
-document.addEventListener("DOMContentLoaded", function(){
-  try { showKickNotice(false); } catch(e){}
-});
