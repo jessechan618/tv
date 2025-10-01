@@ -20,13 +20,65 @@
     return `https://www.twitch.tv/embed/${encodeURIComponent(TWITCH_ID)}/chat?parent=${encodeURIComponent(parent)}&darkpopout`;
   }
   function showTwitch(){
-    const mount=el("#twitch-embed");
+    
+  try{hideKickNotice();}catch(e){};try{hideKickNotice();}catch(e){};// Ensure Twitch iframe has autoplay permission
+  try {
+    var tMount = document.querySelector('#twitch-embed');
+    var tIframe = tMount ? tMount.querySelector('iframe') : null;
+    if (tIframe) {
+      var allow = tIframe.getAttribute('allow') || '';
+      if (!/autoplay/.test(allow)) {
+        tIframe.setAttribute('allow', (allow ? allow + '; ' : '') + 'autoplay; fullscreen; picture-in-picture');
+      }
+    }
+  } catch(e) {}
+
+  // Chrome can block play() after re-showing a previously hidden player.
+  // Strategy: unhide first, then try play() in rAF with retries; if still blocked, reload iframe with autoplay params.
+const mount=el("#twitch-embed");
     const kickFrame=el("#kickFrame");
     if(!mount||!kickFrame)return;
     kickFrame.hidden=true;
     kickFrame.style.display="none";
     try{kickFrame.src="about:blank";}catch{}
     mount.hidden=false;
+  // __TRY_PLAY_INSERTED__
+  (function ensureTwitchAutoplay(){
+    var attempts = 0;
+    function tryPlay() {
+      attempts++;
+      try { if (twitchPlayer && twitchPlayer.setMuted) twitchPlayer.setMuted(true); } catch(e){}
+      try {
+        var p = twitchPlayer && twitchPlayer.play ? twitchPlayer.play() : null;
+        if (p && typeof p.then === 'function') {
+          p.then(function(){}).catch(function(){
+            if (attempts < 3) {
+              setTimeout(tryPlay, 150);
+            } else {
+              // iframe fallback: refresh src with autoplay & muted
+              try {
+                var mount = document.querySelector('#twitch-embed');
+                var ifr = mount ? mount.querySelector('iframe') : null;
+                if (ifr) {
+                  var u = new URL(ifr.src, location.href);
+                  u.searchParams.set('autoplay', 'true');
+                  u.searchParams.set('muted', 'true');
+                  u.searchParams.set('_t', Date.now().toString());
+                  ifr.src = u.toString();
+                }
+              } catch(e){}
+            }
+          });
+        } else {
+          if (attempts < 3) setTimeout(tryPlay, 150);
+        }
+      } catch(e) {
+        if (attempts < 3) setTimeout(tryPlay, 150);
+      }
+    }
+    requestAnimationFrame(function(){ setTimeout(tryPlay, 50); });
+  })();
+
     mount.style.display="block";
     if(twitchPlayer){
       try{
@@ -250,15 +302,72 @@ if (tc) tc.textContent = String(totalViewers);
 
 // Kick reminder toast (only when Kick player is shown)
 let _kickToastTimer = null;
+
+
+
 function showKickNotice(){
   try{
+    const NEVER_KEY = "kickToastNeverShow";
+    const SEEN_KEY  = "kickToastSeenAt";
     const el = document.getElementById("kickToast");
     if (!el) return;
+
+    if (localStorage.getItem(NEVER_KEY) === "1") return;
+
+    const now  = Date.now();
+    const last = +(localStorage.getItem(SEEN_KEY) || 0);
+    if ((now - last) < 24*60*60*1000) return;
+
+    localStorage.setItem(SEEN_KEY, String(now));
+
     el.classList.remove("hidden");
 
     const closeBtn = el.querySelector(".toast-close");
-    if (closeBtn && !closeBtn.dataset.bound){
-      closeBtn.addEventListener("click", () => el.classList.add("hidden"), { once: true });
+    if (closeBtn){
+      const closeFn = function(){
+        try { el.classList.add("hidden"); } catch(e){}
+        try { localStorage.setItem(NEVER_KEY, "1"); } catch(e){}
+        if (window._kickToastTimer) { clearTimeout(window._kickToastTimer); window._kickToastTimer = null; }
+      };
+      closeBtn.onclick = closeFn;
+      closeBtn.ontouchstart = function(ev){ ev.preventDefault(); closeFn(); };
+    }
+
+    if (window._kickToastTimer) clearTimeout(window._kickToastTimer);
+    window._kickToastTimer = setTimeout(function(){
+      try { el.classList.add("hidden"); } catch(e) {}
+      window._kickToastTimer = null;
+    }, 8000);
+  }catch(e){}
+}
+
+catch(e) {}
+        try { localStorage.setItem(NEVER_KEY, "1"); } catch(e) {}
+        if (window._kickToastTimer) { clearTimeout(window._kickToastTimer); window._kickToastTimer = null; }
+      };
+    }
+
+    if (window._kickToastTimer) clearTimeout(window._kickToastTimer);
+    window._kickToastTimer = setTimeout(() => {
+      try { el.classList.add("hidden"); } catch(e) {}
+      window._kickToastTimer = null;
+    }, 8000);
+  }catch(e){}
+}
+
+catch(e){}
+        try { localStorage.setItem(NEVER_KEY, "1"); } catch(e){}
+      };
+    }
+
+    if (window._kickToastTimer) clearTimeout(window._kickToastTimer);
+    window._kickToastTimer = setTimeout(() => {
+      try { el.classList.add("hidden"); } catch(e) {}
+    }, 8000);
+  }catch(e){}
+}
+
+);
       closeBtn.dataset.bound = "1";
     }
 
@@ -266,3 +375,132 @@ function showKickNotice(){
     _kickToastTimer = setTimeout(() => el.classList.add("hidden"), 8000);
   }catch(e){}
 }
+
+function hideKickNotice(){
+  try{
+    const el = document.getElementById("kickToast");
+    if (!el) return;
+    el.classList.add("hidden");
+    if (window._kickToastTimer) { clearTimeout(window._kickToastTimer); window._kickToastTimer = null; }
+  }catch(e){}
+}
+
+function hideToastOnTwitch(ev){
+  try{
+    var btn = ev.target && ev.target.closest ? ev.target.closest('.iconbtn[data-provider="twitch"]') : null;
+    if (btn){ hideKickNotice(); }
+  }catch(e){}
+}
+document.addEventListener('click', hideToastOnTwitch, true);
+
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    var elKick = document.getElementById('kickFrame') || document.querySelector('#kickFrame, [data-embed="kick"]');
+    if (!elKick || !window.MutationObserver) return;
+    var obs = new MutationObserver(function(){
+      try{
+        var hidden = elKick.hasAttribute('hidden') || elKick.style.display === 'none' || elKick.style.visibility === 'hidden';
+        if (hidden) hideKickNotice();
+      }catch(e){}
+    });
+    obs.observe(elKick, { attributes: true, attributeFilter: ['hidden','style','class'] });
+  }catch(e){}
+});
+
+
+/* ==== Kick Toast Controller (robust) ==== */
+(function(){
+  const NEVER_KEY = "kickToastNeverShow";
+  const SEEN_KEY  = "kickToastSeenAt";
+
+  function getToast(){ return document.getElementById("kickToast"); }
+
+  window.hideKickNotice = function(){
+    try{
+      const el = getToast();
+      if (!el) return;
+      el.classList.add("hidden");
+      if (window._kickToastTimer){ clearTimeout(window._kickToastTimer); window._kickToastTimer = null; }
+    }catch(e){}
+  };
+
+  window.showKickNotice = function(force){
+    try{
+      const el = getToast();
+      if (!el) return;
+      if (!force){
+        if (localStorage.getItem(NEVER_KEY) === "1") return;
+        const now  = Date.now();
+        const last = +(localStorage.getItem(SEEN_KEY) || 0);
+        if ((now - last) < 24*60*60*1000) return;
+        localStorage.setItem(SEEN_KEY, String(now));
+      }
+      el.classList.remove("hidden");
+
+      const closeBtn = el.querySelector(".toast-close");
+      if (closeBtn){
+        const closeFn = function(ev){
+          try { if (ev) ev.preventDefault(); } catch(e){}
+          try { el.classList.add("hidden"); } catch(e){}
+          try { localStorage.setItem(NEVER_KEY, "1"); } catch(e){}
+          if (window._kickToastTimer){ clearTimeout(window._kickToastTimer); window._kickToastTimer = null; }
+        };
+        closeBtn.onclick = closeFn;
+        closeBtn.ontouchstart = function(ev){ ev.preventDefault(); closeFn(ev); };
+      }
+
+      if (window._kickToastTimer) clearTimeout(window._kickToastTimer);
+      window._kickToastTimer = setTimeout(function(){
+        try { el.classList.add("hidden"); } catch(e){}
+        window._kickToastTimer = null;
+      }, 8000);
+    }catch(e){}
+  };
+
+  // Wrap setProvider if present
+  try{
+    if (typeof window.setProvider === "function" && !window.setProvider.__wrapped){
+      const orig = window.setProvider;
+      window.setProvider = function(provider){
+        try{
+          if (provider === "kick") { window.showKickNotice(false); }
+          else { window.hideKickNotice(); }
+        }catch(e){}
+        return orig.apply(this, arguments);
+      };
+      window.setProvider.__wrapped = true;
+    }
+  }catch(e){}
+
+  // Fallback: capture clicks on provider buttons
+  document.addEventListener("click", function(ev){
+    try{
+      var el = ev.target && ev.target.closest ? ev.target.closest("[data-provider]") : null;
+      if (!el) return;
+      var provider = el.getAttribute("data-provider") || (el.dataset && el.dataset.provider);
+      if (provider === "kick") window.showKickNotice(false);
+      else if (provider === "twitch") window.hideKickNotice();
+    }catch(e){}
+  }, true);
+
+  // Fallback: hide toast when Twitch area becomes visible / Kick hidden
+  document.addEventListener("DOMContentLoaded", function(){
+    try{
+      var kickEl = document.getElementById("kickFrame") || document.querySelector('[data-embed="kick"], iframe[src*="player.kick.com"]');
+      var twEl   = document.getElementById("twitch-embed") || document.querySelector('#twitch-embed, [data-embed="twitch"]');
+      if (window.MutationObserver){
+        var obs = new MutationObserver(function(){
+          try{
+            var kickShown = kickEl && !kickEl.hidden && kickEl.style.display !== "none" && kickEl.style.visibility !== "hidden";
+            var twShown   = twEl && !twEl.hidden && twEl.style.display !== "none" && twEl.style.visibility !== "hidden";
+            if (!kickShown || twShown) window.hideKickNotice();
+          }catch(e){}
+        });
+        if (kickEl) obs.observe(kickEl, { attributes:true, attributeFilter:["hidden","style","class"] });
+        if (twEl)   obs.observe(twEl,   { attributes:true, attributeFilter:["hidden","style","class"] });
+      }
+    }catch(e){}
+  });
+})();
+/* ==== /Kick Toast Controller ==== */
+
