@@ -237,3 +237,28 @@ body.full .twitchMount, body.full #kickFrame, body.full #chatFrame{ height: calc
   /* Ensure the container can shrink to content */
   .split{ height: auto !important; }
 }
+
+
+/* --- Kick reminder toast (bottom-left) --- */
+.toast{
+  position: fixed;
+  left: 16px; bottom: 16px;
+  max-width: min(92vw, 420px);
+  display: flex; gap: 10px; align-items: center;
+  background: var(--elev);
+  color: var(--text);
+  border: 1px solid #24324b;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  z-index: 1000;
+}
+.toast.hidden{ display: none; }
+.toast .toast-icon{ line-height: 1; }
+.toast .toast-close{
+  margin-left: auto; background: transparent; border: 0;
+  color: inherit; font-size: 20px; line-height: 1; cursor: pointer;
+}
+@media (max-width: 600px){
+  .toast{ left: 12px; bottom: 12px; right: auto; }
+}

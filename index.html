@@ -64,9 +64,7 @@
       <div class="split">
         <div class="videoPane">
           <div id="twitch-embed" class="twitchMount" hidden></div>
-          <iframe id="kickFrame" title="Kick Player" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen hidden></iframe>
-          <p class="notice">
-            ⚠️ 提醒：Kicks 台較聲要 <strong>右鍵</strong> → <strong>顯示所有控制</strong>，右邊會有個喇叭較聲。
+          <iframe id="kickFrame" title="Kick Player" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen hidden></iframe>→ <strong>顯示所有控制</strong>，右邊會有個喇叭較聲。
           </p>
         </div>
         <aside class="chatPane">
@@ -80,5 +78,14 @@
       <span>© YinLove</span>
     </div>
   </footer>
-  <script src="app.js"></script></body>
+  <script src="app.js"></script>
+<!-- Kick volume reminder toast -->
+<div id="kickToast" class="toast hidden" role="status" aria-live="polite">
+  <span class="toast-icon">⚠️</span>
+  <span class="toast-text">
+    提醒：Kicks 台較聲要 <strong>右鍵</strong> → <strong>顯示所有控制</strong>，右邊會有個喇叭較聲。
+  </span>
+  <button class="toast-close" aria-label="關閉">&times;</button>
+</div>
+</body>
 </html>

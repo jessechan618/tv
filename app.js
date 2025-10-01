@@ -246,3 +246,25 @@ if (tc) tc.textContent = String(totalViewers);
   function onReady(fn){ if (document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
   onReady(function(){ fetchViewers(); setInterval(fetchViewers, 30000); });
 })();
+
+
+// ---- Kick reminder toast (show only when switching to Kick) ----
+let _kickToastTimer = null;
+function showKickNotice(){
+  try{
+    const el = document.getElementById("kickToast");
+    if (!el) return;
+    el.classList.remove("hidden");
+
+    // Close button
+    const closeBtn = el.querySelector(".toast-close");
+    if (closeBtn && !closeBtn.dataset.bound){
+      closeBtn.addEventListener("click", () => { el.classList.add("hidden"); }, { once: true });
+      closeBtn.dataset.bound = "1";
+    }
+
+    // Auto-hide after 8s (reset timer if called repeatedly)
+    if (_kickToastTimer) clearTimeout(_kickToastTimer);
+    _kickToastTimer = setTimeout(() => { el.classList.add("hidden"); }, 8000);
+  }catch(e){ /* no-op */ }
+}
