@@ -21,7 +21,7 @@
   }
   function showTwitch(){
     
-  try{hideKickNotice();}catch(e){};try{hideKickNotice();}catch(e){};// Ensure Twitch iframe has autoplay permission
+  // Ensure Twitch iframe has autoplay permission
   try {
     var tMount = document.querySelector('#twitch-embed');
     var tIframe = tMount ? tMount.querySelector('iframe') : null;
@@ -302,72 +302,15 @@ if (tc) tc.textContent = String(totalViewers);
 
 // Kick reminder toast (only when Kick player is shown)
 let _kickToastTimer = null;
-
-
-
 function showKickNotice(){
   try{
-    const NEVER_KEY = "kickToastNeverShow";
-    const SEEN_KEY  = "kickToastSeenAt";
     const el = document.getElementById("kickToast");
     if (!el) return;
-
-    if (localStorage.getItem(NEVER_KEY) === "1") return;
-
-    const now  = Date.now();
-    const last = +(localStorage.getItem(SEEN_KEY) || 0);
-    if ((now - last) < 24*60*60*1000) return;
-
-    localStorage.setItem(SEEN_KEY, String(now));
-
     el.classList.remove("hidden");
 
     const closeBtn = el.querySelector(".toast-close");
-    if (closeBtn){
-      const closeFn = function(){
-        try { el.classList.add("hidden"); } catch(e){}
-        try { localStorage.setItem(NEVER_KEY, "1"); } catch(e){}
-        if (window._kickToastTimer) { clearTimeout(window._kickToastTimer); window._kickToastTimer = null; }
-      };
-      closeBtn.onclick = closeFn;
-      closeBtn.ontouchstart = function(ev){ ev.preventDefault(); closeFn(); };
-    }
-
-    if (window._kickToastTimer) clearTimeout(window._kickToastTimer);
-    window._kickToastTimer = setTimeout(function(){
-      try { el.classList.add("hidden"); } catch(e) {}
-      window._kickToastTimer = null;
-    }, 8000);
-  }catch(e){}
-}
-
-catch(e) {}
-        try { localStorage.setItem(NEVER_KEY, "1"); } catch(e) {}
-        if (window._kickToastTimer) { clearTimeout(window._kickToastTimer); window._kickToastTimer = null; }
-      };
-    }
-
-    if (window._kickToastTimer) clearTimeout(window._kickToastTimer);
-    window._kickToastTimer = setTimeout(() => {
-      try { el.classList.add("hidden"); } catch(e) {}
-      window._kickToastTimer = null;
-    }, 8000);
-  }catch(e){}
-}
-
-catch(e){}
-        try { localStorage.setItem(NEVER_KEY, "1"); } catch(e){}
-      };
-    }
-
-    if (window._kickToastTimer) clearTimeout(window._kickToastTimer);
-    window._kickToastTimer = setTimeout(() => {
-      try { el.classList.add("hidden"); } catch(e) {}
-    }, 8000);
-  }catch(e){}
-}
-
-);
+    if (closeBtn && !closeBtn.dataset.bound){
+      closeBtn.addEventListener("click", () => el.classList.add("hidden"), { once: true });
       closeBtn.dataset.bound = "1";
     }
 
@@ -376,33 +319,83 @@ catch(e){}
   }catch(e){}
 }
 
-function hideKickNotice(){
-  try{
-    const el = document.getElementById("kickToast");
-    if (!el) return;
-    el.classList.add("hidden");
-    if (window._kickToastTimer) { clearTimeout(window._kickToastTimer); window._kickToastTimer = null; }
-  }catch(e){}
-}
 
-function hideToastOnTwitch(ev){
-  try{
-    var btn = ev.target && ev.target.closest ? ev.target.closest('.iconbtn[data-provider="twitch"]') : null;
-    if (btn){ hideKickNotice(); }
-  }catch(e){}
-}
-document.addEventListener('click', hideToastOnTwitch, true);
+/* === Kick Toast Controller (minimal, safe) === */
+(function(){
+  var NEVER_KEY = "kickToastNeverShow";
+  var SEEN_KEY  = "kickToastSeenAt";
+  var timerRef  = null;
 
-document.addEventListener('DOMContentLoaded', function(){
-  try{
-    var elKick = document.getElementById('kickFrame') || document.querySelector('#kickFrame, [data-embed="kick"]');
-    if (!elKick || !window.MutationObserver) return;
-    var obs = new MutationObserver(function(){
-      try{
-        var hidden = elKick.hasAttribute('hidden') || elKick.style.display === 'none' || elKick.style.visibility === 'hidden';
-        if (hidden) hideKickNotice();
-      }catch(e){}
-    });
-    obs.observe(elKick, { attributes: true, attributeFilter: ['hidden','style','class'] });
-  }catch(e){}
-});
+  function getToast(){ return document.getElementById("kickToast"); }
+  function hideKickNotice(){
+    try{
+      var el = getToast();
+      if (!el) return;
+      el.classList.add("hidden");
+      if (timerRef){ clearTimeout(timerRef); timerRef = null; }
+    }catch(e){}
+  }
+  function showKickNoticeIfAllowed(){
+    try{
+      var el = getToast();
+      if (!el) return;
+      // never show again if user closed once
+      if (localStorage.getItem(NEVER_KEY) === "1") return;
+      // once per day
+      var now  = Date.now();
+      var last = +(localStorage.getItem(SEEN_KEY) || 0);
+      if ((now - last) < 24*60*60*1000) return;
+      localStorage.setItem(SEEN_KEY, String(now));
+
+      el.classList.remove("hidden");
+
+      // bind close every time; supports click and touch
+      var closeBtn = el.querySelector(".toast-close");
+      if (closeBtn){
+        var closeFn = function(ev){
+          try{ if (ev) ev.preventDefault(); }catch(e){}
+          try{ el.classList.add("hidden"); }catch(e){}
+          try{ localStorage.setItem(NEVER_KEY, "1"); }catch(e){}
+          if (timerRef){ clearTimeout(timerRef); timerRef = null; }
+        };
+        closeBtn.onclick = closeFn;
+        closeBtn.ontouchstart = function(ev){ ev.preventDefault(); closeFn(ev); };
+      }
+
+      if (timerRef) clearTimeout(timerRef);
+      timerRef = setTimeout(function(){ try{ el.classList.add("hidden"); }catch(e){} timerRef=null; }, 8000);
+    }catch(e){}
+  }
+
+  // Hide immediately when Twitch button is clicked (capture phase)
+  document.addEventListener("click", function(ev){
+    try{
+      var tgt = ev.target && ev.target.closest ? ev.target.closest(".iconbtn[data-provider]") : null;
+      if (!tgt) return;
+      var provider = tgt.getAttribute("data-provider");
+      if (provider === "twitch") hideKickNotice();
+      else if (provider === "kick") showKickNoticeIfAllowed();
+    }catch(e){}
+  }, true);
+
+  // Also hide if Twitch mount is shown or Kick mount is hidden (observer safeguard)
+  document.addEventListener("DOMContentLoaded", function(){
+    try{
+      var kickEl = document.getElementById("kickFrame") || document.querySelector('[data-embed="kick"], iframe[src*="player.kick.com"]');
+      var twEl   = document.getElementById("twitch-embed") || document.querySelector('#twitch-embed, [data-embed="twitch"]');
+      if (window.MutationObserver){
+        var obs = new MutationObserver(function(){
+          try{
+            var kickHidden = kickEl && (kickEl.hidden || kickEl.style.display === "none" || kickEl.style.visibility === "hidden");
+            var twShown    = twEl && (!twEl.hidden && twEl.style.display !== "none" && twEl.style.visibility !== "hidden");
+            if (kickHidden || twShown) hideKickNotice();
+          }catch(e){}
+        });
+        if (kickEl) obs.observe(kickEl, { attributes: true, attributeFilter: ["hidden","style","class"] });
+        if (twEl)   obs.observe(twEl,   { attributes: true, attributeFilter: ["hidden","style","class"] });
+      }
+    }catch(e){}
+  });
+})();
+/* === /Kick Toast Controller === */
+
