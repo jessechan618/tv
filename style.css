@@ -240,9 +240,9 @@ body.full .twitchMount, body.full #kickFrame, body.full #chatFrame{ height: calc
 
 
 /* --- Kick reminder toast --- */
-.toast{
+.toast{ left:16px; bottom:16px;
   position: fixed;
-  right: 16px; bottom: 16px;
+  right: auto; bottom: 16px;
   max-width: min(92vw, 420px);
   display: flex; gap: 10px; align-items: center;
   background: var(--elev);
@@ -262,7 +262,7 @@ body.full .twitchMount, body.full #kickFrame, body.full #chatFrame{ height: calc
   cursor: pointer;
 }
 @media (max-width: 600px){
-  .toast{ left: 12px; right: 12px; bottom: 12px; }
+  .toast{ }
 }
 
 /* Small info button next to Kick */
