@@ -20,65 +20,13 @@
     return `https://www.twitch.tv/embed/${encodeURIComponent(TWITCH_ID)}/chat?parent=${encodeURIComponent(parent)}&darkpopout`;
   }
   function showTwitch(){
-    
-  // Ensure Twitch iframe has autoplay permission
-  try {
-    var tMount = document.querySelector('#twitch-embed');
-    var tIframe = tMount ? tMount.querySelector('iframe') : null;
-    if (tIframe) {
-      var allow = tIframe.getAttribute('allow') || '';
-      if (!/autoplay/.test(allow)) {
-        tIframe.setAttribute('allow', (allow ? allow + '; ' : '') + 'autoplay; fullscreen; picture-in-picture');
-      }
-    }
-  } catch(e) {}
-
-  // Chrome can block play() after re-showing a previously hidden player.
-  // Strategy: unhide first, then try play() in rAF with retries; if still blocked, reload iframe with autoplay params.
-const mount=el("#twitch-embed");
+    const mount=el("#twitch-embed");
     const kickFrame=el("#kickFrame");
     if(!mount||!kickFrame)return;
     kickFrame.hidden=true;
     kickFrame.style.display="none";
     try{kickFrame.src="about:blank";}catch{}
     mount.hidden=false;
-  // __TRY_PLAY_INSERTED__
-  (function ensureTwitchAutoplay(){
-    var attempts = 0;
-    function tryPlay() {
-      attempts++;
-      try { if (twitchPlayer && twitchPlayer.setMuted) twitchPlayer.setMuted(true); } catch(e){}
-      try {
-        var p = twitchPlayer && twitchPlayer.play ? twitchPlayer.play() : null;
-        if (p && typeof p.then === 'function') {
-          p.then(function(){}).catch(function(){
-            if (attempts < 3) {
-              setTimeout(tryPlay, 150);
-            } else {
-              // iframe fallback: refresh src with autoplay & muted
-              try {
-                var mount = document.querySelector('#twitch-embed');
-                var ifr = mount ? mount.querySelector('iframe') : null;
-                if (ifr) {
-                  var u = new URL(ifr.src, location.href);
-                  u.searchParams.set('autoplay', 'true');
-                  u.searchParams.set('muted', 'true');
-                  u.searchParams.set('_t', Date.now().toString());
-                  ifr.src = u.toString();
-                }
-              } catch(e){}
-            }
-          });
-        } else {
-          if (attempts < 3) setTimeout(tryPlay, 150);
-        }
-      } catch(e) {
-        if (attempts < 3) setTimeout(tryPlay, 150);
-      }
-    }
-    requestAnimationFrame(function(){ setTimeout(tryPlay, 50); });
-  })();
-
     mount.style.display="block";
     if(twitchPlayer){
       try{
