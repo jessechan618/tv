@@ -47,7 +47,7 @@
       }catch(e){}
     }
   }
-  function showKick(){
+  function showKick(){try{showKickNotice();}catch{};
     const mount=el("#twitch-embed");
     const kickFrame=el("#kickFrame");
     if(!mount||!kickFrame)return;
