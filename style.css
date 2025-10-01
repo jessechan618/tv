@@ -178,3 +178,62 @@ body.full .twitchMount, body.full #kickFrame, body.full #chatFrame{ height: calc
 .chip .dot{ width:8px; height:8px; border-radius:999px; background: currentColor; display:inline-block; }
 .chip.offline{ background: var(--elev-2); color: var(--muted); }
 .chip.live{ background: #16a34a; color: #0a1f12; border-color: rgba(0,0,0,.1); }
+
+
+/* === Mobile visibility enhancements (appended) === */
+@media (max-width: 768px){
+  /* Readable base text */
+  html { font-size: 16px; }
+  body { line-height: 1.6; }
+
+  /* Title and stats wrap cleanly, larger touch targets */
+  .title { display:flex; flex-wrap: wrap; gap: 8px; }
+  .title .title-stats { display:inline-flex; flex-wrap: wrap; gap: 8px; }
+  .title .title-stats .stat { padding: 4px 8px; font-size: 14px; }
+  .title .title-stats .stat svg { width: 18px; height: 18px; }
+
+  /* Buttons/icons bigger for fingers */
+  .iconbtn { width: 44px; height: 44px; }
+  .iconbtn svg { width: 22px; height: 22px; }
+  .iconbtn .dot { width: 10px; height: 10px; }
+
+  /* Status chip slightly larger */
+  .chip { font-size: 13px; }
+}
+
+/* Stack layout & give chat/player more room on small phones */
+@media (max-width: 600px){
+  .split { display: grid; grid-template-columns: 1fr; gap: 12px; height: auto !important; }
+  .videoPane, .chatPane { width: 100%; }
+  /* Ensure embeds fill width but have reasonable height */
+  .twitchMount, #kickFrame, #chatFrame, iframe, video {
+    width: 100%;
+    max-width: 100%;
+    min-height: 360px;
+    height: auto;
+  }
+}
+
+/* Very small devices */
+@media (max-width: 480px){
+  .title { flex-direction: column; align-items: flex-start; }
+  .iconbtn { width: 48px; height: 48px; }
+  .iconbtn svg { width: 24px; height: 24px; }
+  .twitchMount, #kickFrame, #chatFrame, iframe, video { min-height: 300px; }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
+
+
+/* === Mobile chat gap fix (appended) === */
+/* On small screens, remove artificial min-heights causing extra space below chat */
+@media (max-width: 768px){
+  .chatPane{ min-height: 0 !important; }
+  /* Let the chat iframe size itself reasonably without forcing huge empty space */
+  #chatFrame{ height: auto !important; min-height: 320px; }
+  /* Ensure the container can shrink to content */
+  .split{ height: auto !important; }
+}
