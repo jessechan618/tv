@@ -264,5 +264,5 @@ function showKickNotice(){
 
     if (_kickToastTimer) clearTimeout(_kickToastTimer);
     _kickToastTimer = setTimeout(() => el.classList.add("hidden"), 8000);
-  }catch(e){} 
+  }catch(e){}
 }

@@ -239,9 +239,6 @@ body.full .twitchMount, body.full #kickFrame, body.full #chatFrame{ height: calc
 }
 
 
-/* Hide any legacy inline notice */
-.notice, .kick-notice, #kickNoticeInline { display: none !important; }
-
 /* Toast styles (bottom-left, above footer & safe area) */
 .toast{
   position: fixed;
@@ -263,7 +260,7 @@ body.full .twitchMount, body.full #kickFrame, body.full #chatFrame{ height: calc
   color: inherit; font-size: 20px; line-height: 1; cursor: pointer;
 }
 
-/* Ensure footer reserves space so toast never covers © YinLove */
+/* Reserve space for footer so toast doesn't cover © YinLove */
 footer, .footer { --footer-h: 44px; min-height: var(--footer-h); }
 @media (max-width: 600px){
   footer, .footer { --footer-h: 56px; }
