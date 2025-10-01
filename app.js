@@ -44,7 +44,14 @@
           muted:true,
           autoplay:true
         });
-      }catch(e){}
+      
+      try{
+        if (twitchPlayer && twitchPlayer.addEventListener){
+          twitchPlayer.addEventListener(Twitch.Player.READY, function(){
+            try{ twitchPlayer.setMuted(true); twitchPlayer.play(); }catch(e){}
+          });
+        }
+      }catch(e){}}catch(e){}
     }
   }
   function showKick(){
@@ -246,3 +253,41 @@ if (tc) tc.textContent = String(totalViewers);
   function onReady(fn){ if (document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
   onReady(function(){ fetchViewers(); setInterval(fetchViewers, 30000); });
 })();
+
+
+// ---- Kick reminder toast logic ----
+let _kickToastTimer = null;
+function showKickNotice(force = false){
+  try{
+    const el = document.getElementById("kickToast");
+    if (!el) return;
+    const KEY = "kickNoticeSeenAt";
+    const now = Date.now();
+    const last = +(localStorage.getItem(KEY) || 0);
+    if (!force && (now - last) < 24*60*60*1000) return;
+
+    el.classList.remove("hidden");
+
+    const closeBtn = el.querySelector(".toast-close");
+    if (closeBtn && !closeBtn.dataset.bound){
+      closeBtn.addEventListener("click", () => { el.classList.add("hidden"); }, { once: true });
+      closeBtn.dataset.bound = "1";
+    }
+
+    if (_kickToastTimer) clearTimeout(_kickToastTimer);
+    _kickToastTimer = setTimeout(() => { el.classList.add("hidden"); }, 8000);
+
+    localStorage.setItem(KEY, String(now));
+  }catch(e){}
+}
+
+// Kick info button -> show the kick toast on demand
+document.addEventListener("DOMContentLoaded", function(){
+  var btn = document.getElementById('kickInfoBtn');
+  if (!btn) return;
+  btn.addEventListener('click', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    try { showKickNotice(true); } catch(e){}
+  });
+});
