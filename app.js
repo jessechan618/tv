@@ -248,7 +248,7 @@ if (tc) tc.textContent = String(totalViewers);
 })();
 
 
-// ---- Kick reminder toast (show only when switching to Kick) ----
+// Kick reminder toast (only when Kick player is shown)
 let _kickToastTimer = null;
 function showKickNotice(){
   try{
@@ -256,15 +256,13 @@ function showKickNotice(){
     if (!el) return;
     el.classList.remove("hidden");
 
-    // Close button
     const closeBtn = el.querySelector(".toast-close");
     if (closeBtn && !closeBtn.dataset.bound){
-      closeBtn.addEventListener("click", () => { el.classList.add("hidden"); }, { once: true });
+      closeBtn.addEventListener("click", () => el.classList.add("hidden"), { once: true });
       closeBtn.dataset.bound = "1";
     }
 
-    // Auto-hide after 8s (reset timer if called repeatedly)
     if (_kickToastTimer) clearTimeout(_kickToastTimer);
-    _kickToastTimer = setTimeout(() => { el.classList.add("hidden"); }, 8000);
-  }catch(e){ /* no-op */ }
+    _kickToastTimer = setTimeout(() => el.classList.add("hidden"), 8000);
+  }catch(e){} 
 }

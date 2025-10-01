@@ -239,10 +239,14 @@ body.full .twitchMount, body.full #kickFrame, body.full #chatFrame{ height: calc
 }
 
 
-/* --- Kick reminder toast (bottom-left) --- */
+/* Hide any legacy inline notice */
+.notice, .kick-notice, #kickNoticeInline { display: none !important; }
+
+/* Toast styles (bottom-left, above footer & safe area) */
 .toast{
   position: fixed;
-  left: 16px; bottom: calc(var(--footer-h, 44px) + env(safe-area-inset-bottom, 0) + 12px);
+  left: 16px;
+  bottom: calc(var(--footer-h, 44px) + env(safe-area-inset-bottom, 0) + 12px);
   max-width: min(92vw, 420px);
   display: flex; gap: 10px; align-items: center;
   background: var(--elev);
@@ -253,19 +257,14 @@ body.full .twitchMount, body.full #kickFrame, body.full #chatFrame{ height: calc
   box-shadow: 0 10px 30px rgba(0,0,0,.35);
   z-index: 1000;
 }
-.toast.hidden{ display: none; }
-.toast .toast-icon{ line-height: 1; }
+.toast.hidden { display: none; }
 .toast .toast-close{
   margin-left: auto; background: transparent; border: 0;
   color: inherit; font-size: 20px; line-height: 1; cursor: pointer;
 }
-@media (max-width: 600px){
-  .toast{ left: 12px; bottom: 12px; right: auto; }
-}
 
-
-/* Reserve space for footer so toast doesn't cover © YinLove */
-.footer{ --footer-h: 44px; min-height: var(--footer-h); }
+/* Ensure footer reserves space so toast never covers © YinLove */
+footer, .footer { --footer-h: 44px; min-height: var(--footer-h); }
 @media (max-width: 600px){
-  .footer{ --footer-h: 56px; }
+  footer, .footer { --footer-h: 56px; }
 }
