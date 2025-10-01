@@ -85,3 +85,126 @@ body.full .stage-header{display:none}
 body.full .notice{display:none}
 body.full .split{ grid-template-columns: 1fr 360px; height: calc(100dvh - var(--topbar-h)); }
 body.full .twitchMount, body.full #kickFrame, body.full #chatFrame{ height: calc(100dvh - var(--topbar-h)); }
+
+/* --- Live Stats Bar --- */
+.topbar { display:flex; gap:12px; align-items:center; }
+.topbar .live-stats { margin-left:auto; display:flex; gap:10px; align-items:center; }
+.topbar .live-stats span { background: var(--elev); padding: 6px 10px; border-radius: 8px; line-height:1; }
+.topbar .live-stats #totalViewers { background: var(--accent, #2a9d8f); }
+
+
+/* --- Title inline live stats --- */
+
+.title .title-stats { display: inline-flex; gap: 8px; margin-left: 10px; }
+
+.title .title-stats #totalViewers { background: var(--accent, #2a9d8f); }
+
+
+/* --- Icon viewer stats (theme-aware) --- */
+.title .title-stats .stat{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--elev-2);
+  color:var(--text);
+  padding:4px 10px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.06);
+  line-height:1;
+}
+.title .title-stats .stat svg{ display:inline-block;width:16px;height:16px; fill: currentColor; }
+
+
+
+/* --- Platform icon colors --- */
+.title .title-stats .stat svg { fill: #cbd5e1; }
+#twitchStat{ color:#9146FF; }  /* Twitch purple */
+#kickStat{ color:#52FF00; }    /* Kick green */
+#totalViewers{ color: var(--brand); }
+.title .title-stats .total strong { font-weight: 700; }
+
+
+/* Icon image alignment */
+.title .title-stats .stat img { vertical-align: middle; }
+
+
+/* Total stat: background removed, uses brand color */
+.title .title-stats .stat.total{
+  background: transparent;
+  border: 0;
+  padding: 0 6px;
+  color: var(--brand);
+}
+.title .title-stats .stat.total svg{ fill: currentColor; }
+
+
+/* --- Strong override for total viewer pill --- */
+.title .title-stats span#totalViewers,
+.title .title-stats .stat.total#totalViewers {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 6px !important;
+  color: var(--brand);
+}
+.title .title-stats span#totalViewers svg { fill: currentColor; }
+
+
+/* Explicit platform pills */
+.title .title-stats #twitchStat { background: var(--elev-2); color:#9146FF; padding:4px 10px; border-radius:8px; border:1px solid rgba(255,255,255,.06); }
+.title .title-stats #kickStat { background: var(--elev-2); color:#52FF00; padding:4px 10px; border-radius:8px; border:1px solid rgba(255,255,255,.06); }
+.title .title-stats #twitchStat svg,
+.title .title-stats #kickStat svg { fill: currentColor; }
+
+
+/* === Mobile scrolling fixes (appended) === */
+/* On small screens, allow page to scroll and avoid locking the stage to viewport height */
+@media (max-width: 980px) {
+  html, body { height: auto !important; min-height: 100% !important; }
+  body.full, html.full-root { overflow: auto !important; }
+
+  /* Grid container should size to content so the chat can flow below video */
+  .split { height: auto !important; }
+  body.full .split { height: auto !important; }
+
+  /* Players/chat: stop using fixed viewport heights; allow content to extend page */
+  .twitchMount, #kickFrame, #chatFrame { height: auto !important; min-height: 320px; }
+  .chatPane { min-height: 50vh; } /* ensure chat has room when stacked */
+}
+
+
+/* --- Live status chip --- */
+.chip{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:2px 8px; border-radius:999px; font-size:12px; line-height:1.6;
+  border:1px solid rgba(255,255,255,.08);
+}
+.chip .dot{ width:8px; height:8px; border-radius:999px; background: currentColor; display:inline-block; }
+.chip.offline{ background: var(--elev-2); color: var(--muted); }
+.chip.live{ background: #16a34a; color: #0a1f12; border-color: rgba(0,0,0,.1); }
+
+
+/* --- Kick reminder toast (non-blocking) --- */
+.toast{
+  position: fixed;
+  right: 16px; bottom: 16px; left: auto;
+  max-width: min(92vw, 420px);
+  background: var(--elev);
+  color: var(--text);
+  border: 1px solid #24324b;
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex; gap: 10px; align-items: flex-start;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  z-index: 1000;
+}
+.toast.hidden{ display:none; }
+.toast .toast-icon{ line-height: 1.2; }
+.toast .toast-close{
+  margin-left: auto;
+  background: transparent; border: 0;
+  color: inherit; font-size: 20px; line-height: 1;
+  cursor: pointer;
+}
+@media (max-width: 600px){
+  .toast{ left: 12px; right: 12px; bottom: 12px; }
+}
+
+/* Hide the old absolute-positioned notice to avoid blocking the player */
+.notice{ display: none !important; }

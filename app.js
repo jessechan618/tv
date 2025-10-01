@@ -1,3 +1,4 @@
+let __lastTwitch = 0, __lastKick = 0;
 (function(){
   const el=(s,root=document)=>root.querySelector(s);
   const els=(s,root=document)=>Array.from(root.querySelectorAll(s));
@@ -5,7 +6,7 @@
   const KICK_ID="yinlove";
   let twitchPlayer=null;
   let statusTimer=null;
-  const APP_VERSION="15.0";
+  const APP_VERSION="17.0";
   function setDotStatus(which,status){
     const id=which==="twitch"?"#dot-twitch":"#dot-kick";
     const dot=document.querySelector(id);
@@ -75,7 +76,7 @@
       return j&&j.livestream?"live":"offline";
     }catch{return"unknown";}
   }
-  const TWITCH_STATUS_API = "https://tv-ew5jfagu9-jessechan618s-projects.vercel.app/api/twitch-status";
+  const TWITCH_STATUS_API = "/api/twitch-status";
   async function isTwitchLive(){
     try{
       const r=await fetch(`${TWITCH_STATUS_API}?user_login=${encodeURIComponent(TWITCH_ID)}`,{cache:"no-store",mode:"cors",credentials:"omit"});
@@ -158,5 +159,129 @@
     setProvider("twitch");
     await refreshLiveDots();
     statusTimer=setInterval(refreshLiveDots,30*1000);
+  });
+})();
+
+
+
+
+
+function setTotalCount(total){
+  var el = document.getElementById("totalCount");
+  if (el) el.textContent = String(total);
+}
+
+
+let _fv_inflight=false; let _lastKick={v:0,t:0}; let _lastTwitch={v:0,t:0};
+async function fetchViewers() {
+  if (_fv_inflight) return;
+  _fv_inflight = true;
+
+  try {
+    const [twitchRes, kickRes] = await Promise.allSettled([
+      fetch("/api/twitch-status?user_login=yinlove"),
+      fetch("/api/kick-status?channel=yinlove")
+    ]);
+
+    // Twitch
+    let twitchViewers = __lastTwitch;
+    if (twitchRes.status === "fulfilled") {
+      try {
+        const td = await twitchRes.value.json();
+        if (typeof td.viewers === "number") twitchViewers = td.viewers;
+      } catch {}
+    }
+
+    // Kick
+    let kickViewers = __lastKick;
+    if (kickRes.status === "fulfilled") {
+      try {
+        const kd = await kickRes.value.json();
+        if (typeof kd.viewers === "number") {
+          kickViewers = kd.viewers;
+        } else if (kd && kd.live === false) {
+          kickViewers = 0; // explicit offline
+        }
+      } catch {}
+    }
+
+    __lastTwitch = twitchViewers;
+    __lastKick = kickViewers;
+
+    const totalViewers = twitchViewers + kickViewers;
+
+    // Update totals
+    // smoothing: keep last non-zero for up to 20s when a 0 blip occurs
+    const now = Date.now();
+    if (twitchViewers===0 && _lastTwitch.v>0 && (now - _lastTwitch.t) < 20000) twitchViewers = _lastTwitch.v;
+    else _lastTwitch = {v: twitchViewers, t: now};
+    if (kickViewers===0 && _lastKick.v>0 && (now - _lastKick.t) < 20000) kickViewers = _lastKick.v;
+    else _lastKick = {v: kickViewers, t: now};
+
+    const totalViewers = twitchViewers + kickViewers;
+    var tc = document.getElementById("totalCount"); if (tc) tc.textContent = String(totalViewers); if (tc) tc.textContent = String(totalViewers);
+
+    // Update per-platform numeric spans (icon versions)
+    var tCount = document.getElementById("twitchCount"); if (tCount) tCount.textContent = String(twitchViewers);
+    var kCount = document.getElementById("kickCount"); if (kCount) kCount.textContent = String(kickViewers);
+
+    // Back-compat for any remaining text blocks
+    var tTxt = document.getElementById("twitchViewers"); if (tTxt) tTxt.innerText = `Twitch: ${twitchViewers}`;
+    var kTxt = document.getElementById("kickViewers"); if (kTxt) kTxt.innerText = `Kick: ${kickViewers}`;
+    var totTxt = document.getElementById("totalViewers");
+    if (totTxt && !totTxt.querySelector('svg')) { totTxt.innerText = `Total Viewers: ${totalViewers}`; }
+
+    // Live/Offline chip
+    var chip = document.getElementById("liveChip");
+    var liveText = document.getElementById("liveText");
+    var isLive = (twitchViewers > 0) || (kickViewers > 0);
+    if (chip){
+      chip.classList.toggle("live", isLive);
+      chip.classList.toggle("offline", !isLive);
+    }
+    if (liveText){
+      liveText.textContent = isLive ? "Live" : "Offline";
+    }
+  } catch (err) {
+  console.error("Error fetching viewers", err);
+} finally {
+  _fv_inflight = false;
+}
+
+
+}(function(){
+  function onReady(fn){ if (document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+  onReady(function(){ fetchViewers(); setInterval(fetchViewers, 30000); });
+})();
+
+
+/* Kick reminder toast logic */
+function showKickNotice(force){
+  try{
+    var el = document.getElementById("kickToast");
+    if(!el) return;
+    var KEY = "kickNoticeSeen";
+    if(!force && localStorage.getItem(KEY) === "1") return;
+    el.classList.remove("hidden");
+    var closeBtn = el.querySelector(".toast-close");
+    function hide(){ el.classList.add("hidden"); }
+    if (closeBtn){ closeBtn.addEventListener("click", hide, {once:true}); }
+    setTimeout(hide, 8000);
+    localStorage.setItem(KEY, "1");
+  }catch(e){}
+}
+
+
+// Kick info button -> show the kick toast on demand
+(function(){
+  function onReady(fn){ if (document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+  onReady(function(){
+    var btn = document.getElementById('kickInfoBtn');
+    if (!btn) return;
+    btn.addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      try { showKickNotice(true); } catch(e){}
+    });
   });
 })();

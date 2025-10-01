@@ -9,8 +9,7 @@
   <script src="https://player.twitch.tv/js/embed/v1.js"></script>
 </head>
 <body>
-  <header class="topbar" id="topbar">
-    <div class="brand">
+  <header class="topbar" id="topbar"><div class="brand">
       <img src="logo.png" alt="YinLove Logo" class="logo-img" />
       <div class="title">
         <strong>YinLove 手然怕左鬼婆台</strong>
@@ -20,7 +19,12 @@
         <svg viewBox="0 0 245 240" aria-hidden="true"><path d="M104.4 103.9c-5.7 0-10.2 5-10.2 11.1 0 6.1 4.6 11.1 10.2 11.1 5.7 0 10.2-5 10.2-11.1.1-6.1-4.5-11.1-10.2-11.1zm36.2 0c-5.7 0-10.2 5-10.2 11.1 0 6.1 4.6 11.1 10.2 11.1 5.7 0 10.2-5 10.2-11.1s-4.5-11.1-10.2-11.1z"/><path d="M189.5 20h-134C24.2 20 0 44.2 0 74.8v90.5C0 196 24.2 220 55.5 220h111.3l-5.2-18.1 12.6 11.7 11.9 11.1L245 220V74.8C245 44.2 220.8 20 189.5 20zm-31 131.5s-2.9-3.5-5.3-6.5c10.5-2.9 14.5-9.3 14.5-9.3-3.3 2.2-6.4 3.8-9.2 4.9-4 1.7-7.8 2.8-11.5 3.5-7.6 1.4-14.6 1-20.6-.1-4.5-.9-8.3-2.2-11.6-3.5-1.8-.7-3.7-1.6-5.6-2.7-.2-.1-.4-.2-.6-.3-.1 0-.1-.1-.2-.1-1-.6-1.6-1-1.6-1s3.9 6.4 14.2 9.3c-2.4 3-5.4 6.7-5.4 6.7-17.9-.6-24.7-12.3-24.7-12.3 0-26.1 11.6-47.2 11.6-47.2 11.6-8.7 22.6-8.5 22.6-8.5l.8 1c-14.5 4.2-21.2 10.6-21.2 10.6s1.8-1 4.9-2.4c8.9-3.9 16-5 18.9-5.3.5-.1 1-.2 1.5-.2 5.4-.7 11.4-.9 17.7-.2 8.3 1 17.2 3.6 26.2 8.8 0 0-6.4-6.1-20.3-10.3l1.1-1.3s11-.2 22.6 8.5c0 0 11.6 21.1 11.6 47.2 0 0-6.9 11.7-24.8 12.3z"/></svg>
       </a>
     </div>
-	<div class="title"><strong>幾時播我套倚天屠龍記</strong></div>
+	<div class="title"><strong>幾時播日劇CODE BLUE 緊急救命1-3季粵語版</strong><span class="title-stats"><span class="stat" id="twitchStat" title="Twitch viewers"><svg viewBox="0 0 240 240" width="16" height="16" aria-hidden="true"><path d="M30 0L0 60v150h60v30h30l30-30h60l60-60V0H30zm180 120l-30 30h-60l-30 30v-30H60V30h150v90z" /><path d="M165 60h-15v60h15V60zm-45 0h-15v60h15V60z" /></svg><span id="twitchCount">0
+  <span class="chip offline" id="liveChip" aria-live="polite">
+    <span class="dot" aria-hidden="true"></span>
+    <span id="liveText">Offline</span>
+  </span>
+</span></span><span class="stat" id="kickStat" title="Kick viewers"><img src="/icon/kick.png" alt="Kick" width="16" height="16" style="display:inline-block;border-radius:3px;" /> <span id="kickCount">0</span></span><span class="stat total" id="totalViewers" title="Total viewers"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M16 11c1.7 0 3-1.8 3-4s-1.3-4-3-4-3 1.8-3 4 1.3 4 3 4zm-8 0c1.7 0 3-1.8 3-4S9.7 3 8 3 5 4.8 5 7s1.3 4 3 4zm8 2c-2 0-6 1-6 3v2h12v-2c0-2-4-3-6-3zM8 13c-2.2 0-6 1.1-6 3v2h8v-2c0-1.3 1-2.2 2.4-2.9C11.2 13.4 9.6 13 8 13z"/></svg><strong id="totalCount">0</strong></span></span></div>
     <nav class="nav">
       <button class="iconbtn" data-provider="twitch" aria-pressed="true" title="Twitch">
         <span class="dot" id="dot-twitch" data-status="unknown"></span>
@@ -30,6 +34,11 @@
         <span class="dot" id="dot-kick" data-status="unknown"></span>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h6v6l4-4h6v6h-6l6 6v4h-6l-4-4v4H4V3z"/></svg>
       </button>
+<button class="iconbtn tiny" id="kickInfoBtn" title="Kick 說明" aria-label="顯示 Kick 音量提示">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 2a10 10 0 110 20 10 10 0 010-20zm0 7a1 1 0 100-2 1 1 0 000 2zm-2 3h2v6h2v2H10v-2h2v-4h-2v-2z"/>
+  </svg>
+</button>
       <button class="iconbtn ghost" id="btnToggleFull" aria-pressed="false" title="全頁模式">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10V4h6v2H6v4H4zm14-4h-4V4h6v6h-2V6zM6 14h4v2H4v-6h2v4zm12 0v-4h2v6h-6v-2h4z"/></svg>
       </button>
@@ -77,5 +86,12 @@
     </div>
   </footer>
   <script src="app.js"></script>
+<!-- Non-blocking kick volume reminder -->
+<div id="kickToast" class="toast hidden" role="status" aria-live="polite">
+  <span class="toast-icon">⚠️</span>
+  <span class="toast-text">提醒：Kicks 台較聲要 <strong>右鍵</strong> → <strong>顯示所有控制</strong>，右邊會有個喇叭較聲。</span>
+  <button class="toast-close" aria-label="關閉">&times;</button>
+</div>
 </body>
+
 </html>
