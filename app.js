@@ -197,7 +197,7 @@ const mount=el("#twitch-embed");
   document.addEventListener("DOMContentLoaded",async()=>{
     const chat=el("#chatFrame");
     if(chat)chat.src=twitchChatSrc();
-    els('.iconbtn[data-provider="twitch"]').forEach(btn=>btn.addEventListener("click",e=>{e.preventDefault();setProvider("twitch");}));
+    els('.iconbtn[data-provider="twitch"]').forEach(btn=>btn.addEventListener("click",e=>{e.preventDefault();setProvider("kick");}));
     els('.iconbtn[data-provider="kick"]').forEach(btn=>btn.addEventListener("click",e=>{e.preventDefault();setProvider("kick");}));
     const fullBtn=document.getElementById("btnToggleFull");
     if(fullBtn)fullBtn.addEventListener("click",e=>{e.preventDefault();setFullMode(fullBtn.getAttribute("aria-pressed")!=="true");});
@@ -207,7 +207,7 @@ const mount=el("#twitch-embed");
     updateTopbarHeightVar();
     computeStageHeight();
     window.addEventListener("resize",()=>{updateTopbarHeightVar();computeStageHeight();});
-    setProvider("twitch");
+    setProvider("kick");
     await refreshLiveDots();
     statusTimer=setInterval(refreshLiveDots,30*1000);
   });
