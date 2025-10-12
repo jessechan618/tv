@@ -399,3 +399,60 @@ function showKickNotice(){
 })();
 /* === /Kick Toast Controller === */
 
+// ===== Admin-only Title Editor =====
+document.addEventListener("DOMContentLoaded", function(){
+  const TITLE_KEY = "yl_current_title";
+  const ADMIN_PASSWORD = "admin123"; // change me
+  const titleStrong = document.querySelector(".title strong");
+  const adminPanel  = document.getElementById("admin-section");
+  const inputEl     = document.getElementById("title-input");
+  const saveBtn     = document.getElementById("save-title-btn");
+  const closeBtn    = document.getElementById("close-admin-btn");
+
+  try {
+    const saved = localStorage.getItem(TITLE_KEY);
+    if (saved && titleStrong) {
+      titleStrong.textContent = `現正播放：${saved}`;
+    }
+  } catch {}
+
+  function openAdmin() {
+    const pwd = prompt("請輸入管理員密碼：");
+    if (pwd !== ADMIN_PASSWORD) {
+      alert("密碼錯誤！");
+      return;
+    }
+    if (!adminPanel) return;
+    if (titleStrong) {
+      const raw = titleStrong.textContent || "";
+      const cleaned = raw.replace(/^現正播放：\s*/, "");
+      if (inputEl) inputEl.value = cleaned;
+    }
+    adminPanel.style.display = "block";
+    inputEl && inputEl.focus();
+  }
+
+  window.addEventListener("keydown", (e)=>{
+    if (e.altKey && (e.key === "a" || e.key === "A")) {
+      e.preventDefault();
+      openAdmin();
+    }
+  });
+
+  if (saveBtn) {
+    saveBtn.addEventListener("click", ()=>{
+      const val = (inputEl?.value || "").trim();
+      if (!val) return;
+      try { localStorage.setItem(TITLE_KEY, val); } catch {}
+      if (titleStrong) titleStrong.textContent = `現正播放：${val}`;
+      if (adminPanel) adminPanel.style.display = "none";
+    });
+  }
+  if (closeBtn) {
+    closeBtn.addEventListener("click", ()=>{
+      if (adminPanel) adminPanel.style.display = "none";
+    });
+  }
+});
+// ===== End Admin Title Editor =====
+
