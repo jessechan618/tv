@@ -11,8 +11,8 @@ export default async function handler(req, res) {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        client_id: "vqn10zwyexdipvjr6p8fx7x63un9yt",
-        client_secret: "yvk214nwpp8obo9xub1lzo8f5rrxxz",
+        client_id: "pibl8bvu7njgda8kkbwnfcamqz341q",
+        client_secret: "656t1rcb0o6k6mrf5kqjlbte20atim",
         grant_type: "client_credentials",
       }),
     });
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     // Get user ID from Twitch
     const userResponse = await fetch(`https://api.twitch.tv/helix/users?login=${encodeURIComponent(channel)}`, {
       headers: {
-        "Client-ID": "vqn10zwyexdipvjr6p8fx7x63un9yt",
+        "Client-ID": "pibl8bvu7njgda8kkbwnfcamqz341q",
         "Authorization": `Bearer ${accessToken}`,
       },
     });
@@ -41,7 +41,7 @@ export default async function handler(req, res) {
     // Get stream info
     const streamResponse = await fetch(`https://api.twitch.tv/helix/streams?user_id=${encodeURIComponent(userId)}`, {
       headers: {
-        "Client-ID": "vqn10zwyexdipvjr6p8fx7x63un9yt",
+        "Client-ID": "pibl8bvu7njgda8kkbwnfcamqz341q",
         "Authorization": `Bearer ${accessToken}`,
       },
     });
